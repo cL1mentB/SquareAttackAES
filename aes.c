@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdio.h>
 
+
+//// teste 3 
 int initialisation(char message)
 {
 	//teste longeur du message 

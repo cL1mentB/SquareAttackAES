@@ -33,7 +33,7 @@ unsigned char Sbox[256] =
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//Fonction qui affiche une matrice 4*4
+//Fonction qui affiche une matrice 4*4 en hexadécimal
 void affichage(unsigned char state[4][4]){
 	for(int i=0 ; i<4; i++)
 	{
@@ -47,21 +47,24 @@ void affichage(unsigned char state[4][4]){
 	printf("\n");
 }
 
-//Fonction qui recupère un message de 16 octets et le transforme en matrice 4X4
+//Fonction qui récupère un message de 16 octets et le transforme en matrice 4*4
 void initialisation(unsigned char state[4][4], unsigned char* message)
 {
 	int val;
 	char init[3]="00";
 	for(int i=0; i<32; i+=2)
     {
+    	//Pour récupérer les caractères deux par deux
         strncpy(init, (char *)message+i, 2);
+        //Pour les transformer en hexa
         sscanf(init, "%x", &val);
+        //Pour les ajouter dans la matrice dans l'ordre
         state[(i/2)/4][(i/2)%4] = val;
     }
 }
 
 
-//Fonction AddRoundKey prend en entrée une matrice et un sous-clef K_i de 128 bits et renvoie le XOR des deux
+//Fonction qui prend en entrée une matrice et une sous-clef K_i de 128 bits et renvoie le XOR des deux
 void AddRoundKey(unsigned char state[4][4], unsigned char key[16])
 {
 	for (int i = 0; i < 4; i++)
@@ -73,13 +76,13 @@ void AddRoundKey(unsigned char state[4][4], unsigned char key[16])
     }
 }
 
-//Fonction MixColumns prend une matrice et renvoie la matrice multipliée par une matrice définie 
+//Fonction qui prend en entrée une matrice et renvoie la matrice multipliée par une matrice définie 
 void MixColumns(unsigned char state[4][4])
 {
 	//Declaration de matrice intermediaire 
 	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
-	//multiplication des matrices 
+	//multiplication des matrices dans une matrice temporaire
 	for (int i = 0; i<4; i++)
     {
     	for(int j = 0; j<4; j++ )
@@ -96,12 +99,12 @@ void MixColumns(unsigned char state[4][4])
     {
     	for(int j = 0; j<4; j++ )
     	{
-     		state[i][j] = tmp [i][j]; 
+     		state[i][j] = tmp[i][j]; 
      	}
     }
 }
 
-//Fonction SubBytes prend en entrée une matrice et renvoie la matrice passée dans une Sbox
+//Fonction qui prend en entrée une matrice et renvoie la matrice passée dans une Sbox
 void SubBytes(unsigned char state[4][4])
 {
     for (int i = 0; i<4; i++)
@@ -114,19 +117,18 @@ void SubBytes(unsigned char state[4][4])
     
 }
 
-//Fonction ShiftRows prend une matrice et renvoie la matrice shiftée vers la gauche sur les lignes
+//Fonction qui prend en entrée une matrice et renvoie la matrice shiftée vers la gauche sur les lignes
 void ShiftRows(unsigned char state[4][4])
 {
-	//Declaration de matrice intermediaire 
+	//Déclaration d'une matrice temporaire 
 	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
-	//multiplication des matrices 
-
+	//Shift de la matrice 
 	for (int s = 0; s<4 ; s++)
 	{
 		for(int j=0; j< 4; j++)
 		{
-			tmp[s][j] =  state[s][(j+s)%4];
+			tmp[s][j] = state[s][(j+s)%4];
 		}
 	}
    
@@ -135,10 +137,32 @@ void ShiftRows(unsigned char state[4][4])
     {
     	for(int j = 0; j<4; j++ )
     	{
-     		state[i][j] = tmp [i][j]; 
+     		state[i][j] = tmp[i][j]; 
      	}
     }
+}
 
+//Fonction de chiffrement de l'AES qui prend en entrée un message, un nombre de tours et une clef et qui renvoie le chiffré
+void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
+	//Key schedule
+
+
+
+	//Tour 0
+	AddRoundKey(state, key); //Normalement, on met key_0
+
+	//Tours 1 à n-1
+	for(int i=1; i<nbtours; i++){
+		SubBytes(state);
+		ShiftRows(state);
+		MixColumns(state);
+		AddRoundKey(state, key); //Normalement, on met key_i
+	}
+	
+	//Tour final
+	SubBytes(state);
+	ShiftRows(state);
+	AddRoundKey(state, key); //Normalement, on met key_n
 }
 
 
@@ -149,26 +173,20 @@ void ShiftRows(unsigned char state[4][4])
 int main(int argc, char* argv[])
 {
 
-	//déclaration du message 
+	//initialisation du message 
 	char * message = "6bc1bee22E409F96e93d7e117393172a";
+
+	//initialisation de la clef
 	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
 	unsigned char key_0[16] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	//declaration de la matrice AES
-	unsigned char state[4][4];
-
-	//remplissage de la matrice 
+	
+	//initialisation de la matrice message
+	unsigned char state[4][4]; 
 	initialisation(state, (unsigned char*)message);
-	//affichage matrice
-	affichage(state);
-	AddRoundKey( state, key_0);
-	affichage(state);
-	MixColumns(state);
-	affichage(state);
-	SubBytes(state);
-	affichage(state);
-	ShiftRows(state);
+	
+	//chiffrement
+	encryption_AES(4, state, key);
 	affichage(state);
 
-
-
+	return 0;
 }

@@ -4,6 +4,19 @@
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//Fonction qui affiche une matrice 4*4
+void affichage(unsigned char state[4][4]){
+	for(int i=0 ; i<4; i++)
+	{
+		printf("|");
+		for(int j=0; j<4; j++)
+		{
+			printf(" %x |",state[i][j]);
+		}
+		printf("\n");
+	}
+}
+
 //Fonction qui recupère un message de 16 octets et le transforme en matrice 4X4
 void initialisation(unsigned char state[4][4], unsigned char* message)
 {
@@ -13,7 +26,7 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
     {
         strncpy(init, (char *)message+i, 2);
         sscanf(init, "%x", &val);
-        state[(i/2)%4][(i/2)/4] = val;
+        state[(i/2)/4][(i/2)%4] = val;
     }
 	/*int a=0; 
 	for(int i=0 ; i<4; i++)
@@ -28,7 +41,7 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
 
 
 //Fonction AddRoundKey prend en entrée une matrice et un sous-clef K_i de 128 bits et renvoie le XOR des deux
-void AddRoundKey( unsigned char state[4][4], unsigned char key[16])
+void AddRoundKey(unsigned char state[4][4], unsigned char key[16])
 {
 
 }
@@ -63,5 +76,6 @@ int main(int argc, char* argv[])
 	//remplissage de la matrice 
 	initialisation(state, (unsigned char*)message);
 	//verif
-	printf("%x\n",state[1][1]);
+	printf("%x\n",state[0][1]);
+	affichage(state);
 }

@@ -142,6 +142,44 @@ void ShiftRows(unsigned char state[4][4])
     }
 }
 
+//Fonction de KeyExpansion qui prend en entrée la clé de base et le nombre de tour
+//retourne un tableau de 176 cases contenant les Nr+1 clés. 
+unsigned char * KeyExpansion(unsigned char key[16],int Nr){ 
+    
+    unsigned char * expandedKey = malloc((Nr+1)*16);
+
+    for(int i =0; i<16;i++){
+        expandedKey[i] = key[i];
+    }
+    int byteCount = 16;
+    for(int i=0;i<Nr;i++){
+        unsigned char word[4] = {expandedKey[byteCount-4],expandedKey[byteCount-3],expandedKey[byteCount-2],expandedKey[byteCount-1]};
+        unsigned char tmp[4] = {sbox[word[1]]^Rcon[i+1],sbox[word[2]],sbox[word[3]],sbox[word[0]]};
+
+        for(int j=0; j<4;j++){
+            if(j==0){
+                for(int k=0; k<4;k++){
+                    expandedKey[byteCount+k] = expandedKey[byteCount+k-16]^tmp[k];
+                    
+                }
+                byteCount = byteCount+4;
+            }
+            else{
+                for(int k=0; k<4;k++){
+                    expandedKey[byteCount+k] = expandedKey[byteCount+k-16]^expandedKey[byteCount+k-4];
+                    
+                }
+                byteCount = byteCount+4;
+            }
+        }
+    }
+
+    return expandedKey;
+} // pour utiliser le tableau expandedKey :
+  // au tour t, il faut prendre les valeurs de t*16 à (t+1)*16
+
+
+
 //Fonction de chiffrement de l'AES qui prend en entrée un message, un nombre de tours et une clef et qui renvoie le chiffré
 void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
 	//Key schedule

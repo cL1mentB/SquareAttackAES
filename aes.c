@@ -5,7 +5,7 @@
 /////////////////////////////////// outils  ///////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned char s[256] = 
+unsigned char Sbox[256] = 
  {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -25,6 +25,9 @@ unsigned char s[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
  };
 
+ //matrice MixColonne
+ unsigned char tab_mixCol[4][4] = {{0x02,0x03,0x01,0x01},{0x01,0x02,0x03,0x01},{0x01,0x01,0x02,0x03},{0x03,0x01,0x01,0x02}};
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
@@ -41,6 +44,7 @@ void affichage(unsigned char state[4][4]){
 		}
 		printf("\n");
 	}
+	printf("\n");
 }
 
 //Fonction qui recupère un message de 16 octets et le transforme en matrice 4X4
@@ -70,17 +74,72 @@ void AddRoundKey(unsigned char state[4][4], unsigned char key[16])
 }
 
 //Fonction MixColumns prend une matrice et renvoie la matrice multipliée par une matrice définie 
-void mixColumns(unsigned char state[4][4])
+void MixColumns(unsigned char state[4][4])
 {
+	//Declaration de matrice intermediaire 
+	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
+	//multiplication des matrices 
+	for (int i = 0; i<4; i++)
+    {
+    	for(int j = 0; j<4; j++ )
+    	{
+     		for (int s = 0; s<4 ; s++)
+     		{
+     			tmp[i][j] = tmp [i][j] + state[i][s]*tab_mixCol[s][j];
+     		}
+     	}
+    }
+
+    //recopiage de tmp sur state
+    for (int i = 0; i<4; i++)
+    {
+    	for(int j = 0; j<4; j++ )
+    	{
+     		state[i][j] = tmp [i][j]; 
+     	}
+    }
 }
 
 //Fonction SubBytes prend en entrée une matrice et renvoie la matrice passée dans une Sbox
-void byteSubShiftRow(unsigned char state[4][4])
+void SubBytes(unsigned char state[4][4])
 {
+    for (int i = 0; i<4; i++)
+    {
+    	for(int j = 0; j<4; j++ )
+    	{
+     		state[i][j] = Sbox[state[i][j]]; 
+     	}
+    }
+    
 }
 
 //Fonction ShiftRows prend une matrice et renvoie la matrice shiftée vers la gauche sur les lignes
+void ShiftRows(unsigned char state[4][4])
+{
+	//Declaration de matrice intermediaire 
+	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+
+	//multiplication des matrices 
+
+	for (int s = 0; s<4 ; s++)
+	{
+		for(int j=0; j< 4; j++)
+		{
+			tmp[s][j] =  state[s][(j+s)%4];
+		}
+	}
+   
+    //recopiage de tmp sur state
+    for (int i = 0; i<4; i++)
+    {
+    	for(int j = 0; j<4; j++ )
+    	{
+     		state[i][j] = tmp [i][j]; 
+     	}
+    }
+
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -92,12 +151,8 @@ int main(int argc, char* argv[])
 
 	//déclaration du message 
 	char * message = "6bc1bee22E409F96e93d7e117393172a";
-<<<<<<< HEAD
 	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
-	//unsigned char message1[16] = {0x6b , 0xc1, 0xbe, 0xe2, 0x2E, 0x40 , 0x9F, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a}; 
- 
-=======
->>>>>>> 961efffd620ea55b99ae953e0060f494cfac2829
+	unsigned char key_0[16] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	//declaration de la matrice AES
 	unsigned char state[4][4];
 
@@ -105,4 +160,15 @@ int main(int argc, char* argv[])
 	initialisation(state, (unsigned char*)message);
 	//affichage matrice
 	affichage(state);
+	AddRoundKey( state, key_0);
+	affichage(state);
+	MixColumns(state);
+	affichage(state);
+	SubBytes(state);
+	affichage(state);
+	ShiftRows(state);
+	affichage(state);
+
+
+
 }

@@ -199,7 +199,7 @@ unsigned char * keyExpansion(unsigned char key[16])
     {
         for (int j = 0; j <4; ++j)
         {
-            words[i][j]=0x00;
+            words[giti][j]=0x00;
         }
     }
     
@@ -340,6 +340,42 @@ void inverseByteSubShiftRow(unsigned char * plainText)
     free(temp);
 }
 
+
+//fonction de chiffrement 
+/*void AESEncryption(unsigned char * message, unsigned char * expandedKey, unsigned char * chiffre)
+{
+    unsigned char * state = malloc(16);
+    //unsigned char * expandedKey = malloc(176);
+    //expandedKey = keyExpansion(Key);
+    //key addition for the first round
+    for (int i = 0; i < 16; ++i)
+    {
+     state[i] = message[i] ^ expandedKey[i];
+    }
+
+    //now the 9 rounds begin
+    for(int rounds = 1; rounds<10; rounds++)
+    {
+        byteSubShiftRow(state);
+        mixColumns(state);
+        int counter = 0;
+        int loc = rounds*16;
+        while(counter<16)
+        {
+            state[counter] ^= expandedKey[loc];
+            loc++;
+            counter++;
+        }
+    }
+
+    //10th round
+    byteSubShiftRow(state);
+    for(int i=0; i<16;i++)
+    {
+        chiffre[i] = state[i] ^ expandedKey[i+160];
+    }
+    free(state);
+}*/
 
 void AESEncryption(unsigned char * plainText, unsigned char * expandedKey, unsigned char * cipher)
 {

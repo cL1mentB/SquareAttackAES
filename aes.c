@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// outils  ///////////////////////////////////////////////
@@ -26,8 +27,9 @@ unsigned char Sbox[256] =
  };
 
  //matrice MixColonne
- unsigned char tab_mixCol[4][4] = {{0x02,0x03,0x01,0x01},{0x01,0x02,0x03,0x01},{0x01,0x01,0x02,0x03},{0x03,0x01,0x01,0x02}};
+unsigned char tab_mixCol[4][4] = {{0x02,0x03,0x01,0x01},{0x01,0x02,0x03,0x01},{0x01,0x01,0x02,0x03},{0x03,0x01,0x01,0x02}};
 
+unsigned char Rcon[11] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
@@ -64,17 +66,7 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
 }
 
 
-//Fonction qui prend en entrée une matrice et une sous-clef K_i de 128 bits et renvoie le XOR des deux
-void AddRoundKey(unsigned char state[4][4], unsigned char key[16])
-{
-	for (int i = 0; i < 4; i++)
-    {
-    	for(int j = 0; j< 4; j++ )
-    	{
-     		state[i][j] = state[i][j] ^ key[4*i+j];
-     	}
-    }
-}
+
 
 //Fonction qui prend en entrée une matrice et renvoie la matrice multipliée par une matrice définie 
 void MixColumns(unsigned char state[4][4])
@@ -142,21 +134,35 @@ void ShiftRows(unsigned char state[4][4])
     }
 }
 
+
+//Fonction qui prend en entrée une matrice et une sous-clef K_i de 128 bits et renvoie le XOR des deux
+void AddRoundKey(unsigned char state[4][4], unsigned char * expandedKey,int tour)
+{
+	for (int i = 0; i < 4; i++)
+    {
+    	for(int j = 0; j< 4; j++ )
+    	{
+     		state[i][j] = state[i][j] ^ expandedKey[4*i+j+tour*16];
+     	}
+    }
+}
+
+
 //Fonction de KeyExpansion qui prend en entrée la clé de base et le nombre de tour
-//retourne un tableau de 176 cases contenant les Nr+1 clés. 
-unsigned char * KeyExpansion(unsigned char key[16],int Nr){ 
+//retourne un tableau de 176 cases contenant les nbtours+1 clés. 
+unsigned char * KeyExpansion(unsigned char key[16],int nbtours){ 
     
-    unsigned char * expandedKey = malloc((Nr+1)*16);
+    unsigned char * expandedKey = malloc( (nbtours+1)*16);
 
     for(int i =0; i<16;i++){
         expandedKey[i] = key[i];
     }
     int byteCount = 16;
-    for(int i=0;i<Nr;i++){
+    for(int i=0; i<nbtours; i++){
         unsigned char word[4] = {expandedKey[byteCount-4],expandedKey[byteCount-3],expandedKey[byteCount-2],expandedKey[byteCount-1]};
-        unsigned char tmp[4] = {sbox[word[1]]^Rcon[i+1],sbox[word[2]],sbox[word[3]],sbox[word[0]]};
+        unsigned char tmp[4] = {Sbox[word[1]]^Rcon[i+1],Sbox[word[2]],Sbox[word[3]],Sbox[word[0]]};
 
-        for(int j=0; j<4;j++){
+        for(int j=0; j<4; j++){
             if(j==0){
                 for(int k=0; k<4;k++){
                     expandedKey[byteCount+k] = expandedKey[byteCount+k-16]^tmp[k];
@@ -165,7 +171,7 @@ unsigned char * KeyExpansion(unsigned char key[16],int Nr){
                 byteCount = byteCount+4;
             }
             else{
-                for(int k=0; k<4;k++){
+                for(int k=0; k<4; k++){
                     expandedKey[byteCount+k] = expandedKey[byteCount+k-16]^expandedKey[byteCount+k-4];
                     
                 }
@@ -184,23 +190,23 @@ unsigned char * KeyExpansion(unsigned char key[16],int Nr){
 void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
 	//Key schedule
 
-
+	unsigned char * expandedKey = KeyExpansion(key,nbtours);
 
 	//Tour 0
-	AddRoundKey(state, key); //Normalement, on met key_0
+	AddRoundKey(state, expandedKey,0); //Normalement, on met key_0
 
 	//Tours 1 à n-1
 	for(int i=1; i<nbtours; i++){
 		SubBytes(state);
 		ShiftRows(state);
 		MixColumns(state);
-		AddRoundKey(state, key); //Normalement, on met key_i
+		AddRoundKey(state, expandedKey,i); //Normalement, on met key_i
 	}
 	
 	//Tour final
 	SubBytes(state);
 	ShiftRows(state);
-	AddRoundKey(state, key); //Normalement, on met key_n
+	AddRoundKey(state, expandedKey, nbtours); //Normalement, on met key_n
 }
 
 
@@ -215,8 +221,8 @@ int main(int argc, char* argv[])
 	char * message = "6bc1bee22E409F96e93d7e117393172a";
 
 	//initialisation de la clef
-	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
-	unsigned char key_0[16] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
+	//unsigned char key_0[16] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	
 	//initialisation de la matrice message
 	unsigned char state[4][4]; 

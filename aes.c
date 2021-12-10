@@ -189,7 +189,6 @@ unsigned char * KeyExpansion(unsigned char key[16],int nbtours){
 //Fonction de chiffrement de l'AES qui prend en entrée un message, un nombre de tours et une clef et qui renvoie le chiffré
 void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
 	//Key schedule
-
 	unsigned char * expandedKey = KeyExpansion(key,nbtours);
 
 	//Tour 0
@@ -216,13 +215,11 @@ void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16
 
 int main(int argc, char* argv[])
 {
-
 	//initialisation du message 
 	char * message = "6bc1bee22E409F96e93d7e117393172a";
 
-	//initialisation de la clef
+	//initialisation de la clef : 8d010204081020408d01020408102040
 	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
-	//unsigned char key_0[16] = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	
 	//initialisation de la matrice message
 	unsigned char state[4][4]; 

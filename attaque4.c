@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +33,10 @@ unsigned char invSBOX[256] =
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true ou false selon si elles sont équilibrées ou non
 
+
+//Fonction ShiftRowsInv qui renvoie la matrice shiftée vers la droite
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +47,10 @@ unsigned char invSBOX[256] =
 
 int main(int argc, char* argv[])
 {
-
-	unsigned char tab[3];
+	int val;
+	int compteur_ligne = 0;
+	char tab[3]= "00";
+	unsigned char set[256][16];
 	//ecriture du landa set dans un tableau 
 	FILE* chiffres; 
 	chiffres = fopen("set_chiffres.txt", "r"); 
@@ -51,7 +58,7 @@ int main(int argc, char* argv[])
 	char * buffer = (char *) malloc(40);
     while ( ! feof( chiffres) ) 
     {
-        fgets( buffer, 40 , chiffres);
+        fgets((char *)buffer, 40 , chiffres);
         if ( ferror(chiffres) ) 
         {
             fprintf( stderr, "Reading error with code %d\n", errno );
@@ -60,12 +67,19 @@ int main(int argc, char* argv[])
         //parcour des lignes chiffres et ajout au tableau 
         for(int i=0; i<3 ; i++)
         {
-        	unsigned char octet = char_to_hexa(buffer[2*i])*16 + char_to_hexa(buffer[2*i+1]);
- 			tab[i]= octet;
+        	for(int j=0; j<32; j+=2){
+        		//Pour récupérer les caractères deux par deux
+		        strncpy(tab, (char *)buffer+j, 2);
+		        //Pour les transformer en hexa
+		        sscanf(tab, "%x", &val);
+		        //Pour les ajouter dans la matrice dans l'ordre
+		        set[i][j/2] = val;
+        	}
         }
         compteur_ligne = compteur_ligne +1;
-        puts( buffer );  //affichage des lignes recup      
+        puts( (char *)buffer );  //affichage des lignes recup      
     }
     free( buffer ); 
 	fclose(chiffres);
+	printf("%x\n", set[0][1]);
 }

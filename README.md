@@ -20,10 +20,8 @@ Fonction Tour qui appelle les fonctions SubBytes, ShiftRows, MixColumns et AddRo
 
 #Attaque
 
-Fonction ShiftRowsInv qui renvoie la matrice shiftée vers la droite
+Fonction SubBytesInv qui prend en entrée un tableau de 256 chiffrés et renvoie ces messages passés par la SboxInv
 
-Fonction SubBytesInv 
-
-Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true ou false selon si elles sont équilibrées ou non 
+Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true si elles sont équilibrées
 
 deuxième test

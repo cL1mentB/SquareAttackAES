@@ -34,7 +34,26 @@ unsigned char invSBOX[256] =
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true ou false selon si elles sont équilibrées ou non
-
+bool TestCell(unsigned char set[256][16])
+{
+	bool b = true;
+	int somme[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (int i = 0; i<256; i++)
+    {
+    	for(int j = 0; j<16; j++)
+    	{
+    		//Fais un XOR avec tous les éléments d'une ligne pour savoir si elle est équilibrée
+     		somme[j] = somme[j] ^ set[i][j]; 
+     	}
+    }
+    for(int j = 0; j<16; j++)
+	{
+		if(somme[j]!=0){
+			b = false;
+		}
+ 	}
+ 	return b;
+}
 
 //Fonction SubBytesInv qui prend en entrée le tableau de 256 chiffrés et renvoie les messages passés dans la SboxInv
 void SubBytesInv(unsigned char set[256][16])

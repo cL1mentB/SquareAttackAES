@@ -36,8 +36,17 @@ unsigned char invSBOX[256] =
 //Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true ou false selon si elles sont équilibrées ou non
 
 
-//Fonction ShiftRowsInv qui renvoie la matrice shiftée vers la droite
-
+//Fonction SubBytesInv qui prend en entrée le tableau de 256 chiffrés et renvoie les messages passés dans la SboxInv
+void SubBytesInv(unsigned char set[256][16])
+{
+    for (int i = 0; i<256; i++)
+    {
+    	for(int j = 0; j<16; j++)
+    	{
+     		set[i][j] = invSBOX[set[i][j]]; 
+     	}
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////

@@ -168,10 +168,9 @@ int main(int argc, char* argv[])
 																	SubBytesInv(set);
 
 																	int y = TestCell(set);
-																	printf("%d\n", y );
 																	if (y==1)
 																	{
-																		printf("gagné\n");
+																		printf("clé supposée : %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p);
 																	}
 
 

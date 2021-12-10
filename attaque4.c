@@ -33,7 +33,7 @@ unsigned char invSBOX[256] =
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//Fonction TestCell qui prend en entrée une liste de 256 matrices et renvoie true ou false selon si elles sont équilibrées ou non
+//Fonction qui prend en entrée une liste de 256 messages et renvoie true s'ils sont équilibrés ou non
 bool TestCell(unsigned char set[256][16])
 {
 	bool b = true;
@@ -55,7 +55,7 @@ bool TestCell(unsigned char set[256][16])
  	return b;
 }
 
-//Fonction SubBytesInv qui prend en entrée le tableau de 256 chiffrés et renvoie les messages passés dans la SboxInv
+//Fonction qui prend en entrée le tableau de 256 chiffrés et renvoie les messages passés dans la SboxInv
 void SubBytesInv(unsigned char set[256][16])
 {
     for (int i = 0; i<256; i++)

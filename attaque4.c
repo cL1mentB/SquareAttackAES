@@ -33,23 +33,37 @@ unsigned char invSBOX[256] =
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//Fonction qui prend en entrée une liste de 256 messages et renvoie true s'ils sont équilibrés ou non
-bool TestCell(unsigned char set[256][16])
+//fonction qui xor tout le tableau avec une clé
+void AddRoundKey(unsigned char set[256][16], unsigned char Key[16])
 {
-	bool b = true;
-	int somme[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int i = 0; i<256; i++)
     {
     	for(int j = 0; j<16; j++)
     	{
-    		//Fais un XOR avec tous les éléments d'une ligne pour savoir si elle est équilibrée
+     		set[i][j] = set[i][j]^Key[j]; 
+     	}
+    }
+}
+
+//Fonction qui prend en entrée une liste de 256 messages et renvoie true s'ils sont équilibrés ou non
+int TestCell(unsigned char set[256][16])
+{
+	int b = 1;
+	unsigned char somme[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (int i = 0; i<256; i++)
+    {
+    	for(int j = 0; j<16; j++)
+    	{
+    		//Fais un XOR avec tous les éléments d'une colonne pour savoir si elle est équilibrée
      		somme[j] = somme[j] ^ set[i][j]; 
      	}
     }
+ 
+
     for(int j = 0; j<16; j++)
 	{
 		if(somme[j]!=0){
-			b = false;
+			b = 0;
 		}
  	}
  	return b;
@@ -81,7 +95,7 @@ int main(int argc, char* argv[])
 	unsigned char set[256][16];
 	//ecriture du landa set dans un tableau 
 	FILE* chiffres; 
-	chiffres = fopen("set_chiffres.txt", "r"); 
+	chiffres = fopen("set.txt", "r"); 
 
 	char * buffer = (char *) malloc(40);
     while ( ! feof( chiffres) ) 
@@ -93,21 +107,89 @@ int main(int argc, char* argv[])
             break;
         } 
         //parcour des lignes chiffres et ajout au tableau 
-        for(int i=0; i<3 ; i++)
-        {
-        	for(int j=0; j<32; j+=2){
-        		//Pour récupérer les caractères deux par deux
-		        strncpy(tab, (char *)buffer+j, 2);
-		        //Pour les transformer en hexa
-		        sscanf(tab, "%x", &val);
-		        //Pour les ajouter dans la matrice dans l'ordre
-		        set[i][j/2] = val;
-        	}
-        }
+    
+    	for(int j=0; j<32; j+=2)
+    	{
+    		//Pour récupérer les caractères deux par deux
+	        strncpy(tab, (char *)buffer+j, 2);
+	        //Pour les transformer en hexa
+	        sscanf(tab, "%x", &val);
+	        //Pour les ajouter dans la matrice dans l'ordre
+	        set[compteur_ligne][j/2] = val;
+    	}
+   
         compteur_ligne = compteur_ligne +1;
-        puts( (char *)buffer );  //affichage des lignes recup      
+        //puts( (char *)buffer );  //affichage des lignes recup      
     }
     free( buffer ); 
 	fclose(chiffres);
-	printf("%x\n", set[0][1]);
+	//unsigned char key[16] = {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p};
+	unsigned char key[16] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40};
+	//printf("%x , %x, %x , %x ,%x , %x,%x , %x, %x , %x ,%x , %x,%x , %x, %x, %x\n", set[0][0], set[0][1],set[0][2],set[0][3],set[0][4],set[0][5],set[0][6], set[0][7],set[0][8],set[0][9],set[0][10],set[0][11],set[0][12], set[0][13],set[0][14],set[0][15]);
+	//printf("%x , %x, %x , %x ,%x , %x\n", set[1][0], set[1][1],set[1][2],set[1][3],set[1][4],set[1][5]);
+
+
+	//mise en place de l'attaque 
+	//guess de cle 
+	for(int a =0 ;  a<256; a++)
+	{
+		for(int b =0 ;  b<256; b++)
+		{
+			for(int c =0 ;  c<256; c++)
+			{
+				for(int d =0 ;  d<256; d++)
+				{
+					for(int e =0 ;  e<256; e++)
+					{
+						for(int f =0 ;  f<256; f++)
+						{
+							for(int g =0 ;  g<256; g++)
+							{
+								for(int h =0 ;  h<256; h++)
+								{
+									for(int i =0 ;  i<256; i++)
+									{
+										for(int j =0 ;  j<256; j++)
+										{
+											for(int k =0 ;  k<256; k++)
+											{
+												for(int l =0 ; l<256; l++)
+												{
+													for(int m =0 ;  m<256; m++)
+													{
+														for(int n =0 ;  n<256; n++)
+														{
+															for(int o=0 ;  o<256; o++)
+															{
+																for(int p=0 ;  p<256; p++)
+																{
+																	unsigned char key[16] = {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p};
+																	AddRoundKey(set, key);
+																	SubBytesInv(set);
+
+																	int y = TestCell(set);
+																	printf("%d\n", y );
+																	if (y==1)
+																	{
+																		printf("gagné\n");
+																	}
+
+
+												
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}	
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

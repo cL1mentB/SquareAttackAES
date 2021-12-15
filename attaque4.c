@@ -33,6 +33,20 @@ unsigned char invSBOX[256] =
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//Fonction qui affiche une matrice 4*4 en hexadécimal
+void affichage(unsigned char state[4][4]){
+	for(int i=0 ; i<4; i++)
+	{
+		printf("|");
+		for(int j=0; j<4; j++)
+		{
+			printf(" %x |",state[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
 //fonction qui xor tout le tableau avec une clé
 void AddRoundKey(unsigned char set[256][16], unsigned char Key[16])
 {
@@ -81,6 +95,52 @@ void SubBytesInv(unsigned char set[256][16])
     }
 }
 
+
+//----- Fonctions sur 1 octet ----- //
+
+//Fonction qui prend en entrée un octet du set et un octet de la clé et renvoi l'octet passé dans la SboxInv
+unsigned char InvSubBytes(unsigned char set){
+	set = invSBOX[set];
+	return set;
+}
+
+int balancedByte(unsigned char set[256]){
+	unsigned char somme = 0;
+	for(int i=0;i<256;i++){
+		somme ^= set[i];
+	}
+	return somme;
+}
+
+
+//----- Fonctions sur 1 octet ----- //
+
+
+
+void invShiftRows(unsigned char state[4][4])
+{
+	//Déclaration d'une matrice temporaire 
+	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+
+	//Shift de la matrice 
+	for (int s = 0; s<4 ; s++)
+	{
+		for(int j=0; j< 4; j++)
+		{
+			tmp[s][j] = state[s][(j-s)%4];
+		}
+	}
+   
+    //recopiage de tmp sur state
+    for (int i = 0; i<4; i++)
+    {
+    	for(int j = 0; j<4; j++ )
+    	{
+     		state[i][j] = tmp[i][j]; 
+     	}
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +153,9 @@ int main(int argc, char* argv[])
 	int compteur_ligne = 0;
 	char tab[3]= "00";
 	unsigned char set[256][16];
-	//ecriture du landa set dans un tableau 
+
+
+	/*ecriture du lambda set dans un tableau 
 	FILE* chiffres; 
 	chiffres = fopen("set.txt", "r"); 
 
@@ -103,9 +165,9 @@ int main(int argc, char* argv[])
         fgets((char *)buffer, 40 , chiffres);
         if ( ferror(chiffres) ) 
         {
-            fprintf( stderr, "Reading error with code %d\n", errno );
-            break;
-        } 
+			fprintf(stderr, "Reading error wih code %d\n",errno);
+			break;
+		}
         //parcour des lignes chiffres et ajout au tableau 
     
     	for(int j=0; j<32; j+=2)
@@ -128,67 +190,39 @@ int main(int argc, char* argv[])
 	//printf("%x , %x, %x , %x ,%x , %x,%x , %x, %x , %x ,%x , %x,%x , %x, %x, %x\n", set[0][0], set[0][1],set[0][2],set[0][3],set[0][4],set[0][5],set[0][6], set[0][7],set[0][8],set[0][9],set[0][10],set[0][11],set[0][12], set[0][13],set[0][14],set[0][15]);
 	//printf("%x , %x, %x , %x ,%x , %x\n", set[1][0], set[1][1],set[1][2],set[1][3],set[1][4],set[1][5]);
 
+	//Déclaration d'une matrice temporaire 
+	*/
 
 	//mise en place de l'attaque 
 	//guess de cle 
-	for(int a =0 ;  a<256; a++)
-	{
-		for(int b =0 ;  b<256; b++)
-		{
-			for(int c =0 ;  c<256; c++)
-			{
-				for(int d =0 ;  d<256; d++)
-				{
-					for(int e =0 ;  e<256; e++)
-					{
-						for(int f =0 ;  f<256; f++)
-						{
-							for(int g =0 ;  g<256; g++)
-							{
-								for(int h =0 ;  h<256; h++)
-								{
-									for(int i =0 ;  i<256; i++)
-									{
-										for(int j =0 ;  j<256; j++)
-										{
-											for(int k =0 ;  k<256; k++)
-											{
-												for(int l =0 ; l<256; l++)
-												{
-													for(int m =0 ;  m<256; m++)
-													{
-														for(int n =0 ;  n<256; n++)
-														{
-															for(int o=0 ;  o<256; o++)
-															{
-																for(int p=0 ;  p<256; p++)
-																{
-																	unsigned char key[16] = {a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p};
-																	AddRoundKey(set, key);
-																	SubBytesInv(set);
-
-																	int y = TestCell(set);
-																	if (y==1)
-																	{
-																		printf("clé supposée : %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p);
-																	}
 
 
-												
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}	
-							}
-						}
-					}
-				}
+	unsigned char KeySuggested[16][10];
+	for(int i=0;i<16;i++){
+		for(int j=0;j<10;j++){
+			KeySuggested[i][j]=0;
+		}
+	}
+
+	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
+		
+		int compteurDeCle = 0;
+		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
+			unsigned char tmpSet[256]; 
+
+			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+				unsigned char tmp = set[i][a] ^ k; 
+				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				tmpSet[i] = tmp;
+			}
+
+			if balancedByte(tmpSet)==1{
+				KeySuggested[a][compteurDeCle] = k;
 			}
 		}
 	}
+	// trouver toutes les combinaisons de clé à partir de KeySuggested.
+	// faire la fonction inverse d'expandKey pour retrouver la clé initiale.
+
+	
 }

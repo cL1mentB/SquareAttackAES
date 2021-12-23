@@ -141,6 +141,75 @@ void invShiftRows(unsigned char state[4][4])
     }
 }
 
+
+
+
+
+/////// Fonction d'attaques 
+
+// fonction qui renvoi un tableau d'octet possible composant la cle.
+
+void suggestedKey(unsigned char **KeySuggested, unsigned char tmpset[256][16]){
+
+	KeySuggested = (unsigned char**) malloc(sizeof(unsigned char*)*16);
+
+
+	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
+		
+		int compteurDeCle = 1;
+		printf("%d ---> ",a);
+
+		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
+
+			unsigned char tmpSet[256]; 
+			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+				
+				unsigned char tmp = tmpset[i][a] ^ k; 
+				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				tmpSet[i] = tmp;
+			}
+	
+			if (balancedByte(tmpSet)==0){
+				
+				// KeySuggested[a][compteurDeCle-1] = k 
+				
+				if(compteurDeCle == 1){
+					KeySuggested[a] = (unsigned char*) malloc(sizeof(unsigned char));
+					
+					
+					if(KeySuggested[a] == NULL){
+						printf("erreur 1\n");
+						exit(0);
+					}
+				}
+
+				else{
+					KeySuggested[a] = realloc(KeySuggested[a], sizeof(unsigned char)*(compteurDeCle));
+					if(KeySuggested[a] == NULL){
+						printf("erreur 2\n");
+						exit(0);
+					}
+				}
+				
+				KeySuggested[a][compteurDeCle] = k;
+				printf("%x ",KeySuggested[a][compteurDeCle]);
+				
+				compteurDeCle++;
+			}
+		
+		}
+		printf("\n");
+	
+	}
+
+}
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -211,75 +280,10 @@ int main(int argc, char* argv[])
 			tmpset[i][j] = set[i][j];
 		}
 	}
-/*				                            Sans allocation dynamique
-	unsigned char KeySuggested[16][5];
-	for(int i=0;i<16;i++){
-		for(int j=0;j<10;j++){
-			KeySuggested[i][j]=0;
-		}
-	}
-*/
-										// avec allocation dynamique
-	unsigned char **KeySuggested2;
-	KeySuggested2 = malloc(sizeof(unsigned char)*16);
-	if(KeySuggested2 == NULL){
-		exit(0);
-	}
 
-	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
-		
-		int compteurDeCle = 1;
-		printf("%d ---> ",a);
+unsigned char **KeySuggested = NULL;
 
-		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
-
-			unsigned char tmpSet[256]; 
-			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
-				
-				unsigned char tmp = tmpset[i][a] ^ k; 
-				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
-				tmpSet[i] = tmp;
-			}
-	
-			if (balancedByte(tmpSet)==0){
-				
-				// KeySuggested[a][compteurDeCle-1] = k 
-				if(compteurDeCle == 1){
-					KeySuggested2[a] = malloc(sizeof(unsigned char));
-					if(KeySuggested2[a] == NULL){
-						exit(0);
-					}
-				} 
-				else{
-					KeySuggested2[a] = realloc(KeySuggested2[a], sizeof(unsigned char)*(compteurDeCle));
-					if(KeySuggested2[a] == NULL){
-						exit(0);
-					}
-				}
-				KeySuggested2[a][compteurDeCle] = k;
-				printf("%x ",KeySuggested2[a][compteurDeCle]);
-				
-				compteurDeCle++;
-			}
-		
-		}
-		printf("\n");
-	
-	}
-
-	
-
-free(KeySuggested2);
-
-
-/*
-	for(int i=0;i<16;i++){
-		for(int j=0;j<5;j++){
-			printf("%x ",KeySuggested[i][j]);
-		}
-		printf("\n");
-	}
-*/
+suggestedKey(KeySuggested,tmpset);
 	
 
 	// trouver toutes les combinaisons de clé à partir de KeySuggested.

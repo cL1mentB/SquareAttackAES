@@ -138,12 +138,10 @@ int balancedByte(unsigned char set[256]){
 
 //----- Fonctions sur 1 octet ----- //
 
-
-
 void invShiftRows(unsigned char state[4][4])
 {
 	//Déclaration d'une matrice temporaire 
-	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+	unsigned char tmp[4][4] = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
 	//Shift de la matrice 
 	for (int s = 0; s<4 ; s++)
@@ -164,17 +162,14 @@ void invShiftRows(unsigned char state[4][4])
     }
 }
 
-
-
-
-
-/////// Fonction d'attaques 
+/////// Fonctions d'attaques 
 
 // fonction qui renvoi un tableau d'octet possible composant la cle.
 
-void suggestedKey(unsigned char **KeySuggested, unsigned char tmpset[256][16]){
+void suggestedKey(unsigned char **KeySuggested,int * tailleKeySuggested, unsigned char tmpset[256][16]){
 
 	KeySuggested = (unsigned char**) malloc(sizeof(unsigned char*)*16);
+	tailleKeySuggested = (int*) malloc(sizeof(int)*16);
 
 
 	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
@@ -213,11 +208,12 @@ void suggestedKey(unsigned char **KeySuggested, unsigned char tmpset[256][16]){
 				
 				compteurDeCle++;
 			}
+
 		}
+		tailleKeySuggested[a] = compteurDeCle-1;
 		printf("\n");
 	}
 }
-
 
 // fonction qui retourne la clé initiale à partir d'une sous clé.
 
@@ -261,25 +257,22 @@ unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
 };
 
 // fonction qui retourne l'intersection de 2 tableaux 
-/*
-unsigned char * intersectionKey(unsigned char **tab1 , unsigned char **tab2){
+
+unsigned char * intersectionKey(unsigned char **tab1 , int *tailleTab1, unsigned char **tab2, int * tailleTab2){
 	unsigned char *key = NULL;
 	key = malloc(sizeof(unsigned char)*16);
 
 	for (int i=0; i<16; i++){
-		for(int j=0; j<sizeof(tab1[i]);j++){
-			for(int k=0; k<sizeof(tab2[i]);k++){
+		for(int j=0; j<tailleTab1[i];j++){
+			for(int k=0; k<tailleTab2[i];k++){
 				if(tab1[i][j]==tab2[i][k]){
 					key[i] = tab1[i][j];
-					printf("%d --> size1 : %d size2 :  %d\n",tab1[i][j],j,k);
 				}
 			}
 		}
 	}
 	return key;
-}*/
-
-
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
@@ -293,9 +286,7 @@ int main(int argc, char* argv[])
 	int compteur_ligne = 0;
 	char tab[3]= "00";
 	unsigned char set[256][16];
-
 	
-
 	//ecriture du lambda set chiffré dans un tableau 
 	FILE* chiffres; 
 	chiffres = fopen("set.txt", "r"); 
@@ -340,56 +331,19 @@ int main(int argc, char* argv[])
 			}
 		}
 		printf("\n");
-	}
+	}*/
 	
-*/
-
-
-	//guess de cle 
 	unsigned char tmpset[256][16]; //Ajout du set dans tmpset
 	for(int i=0;i<256;i++){
 		for(int j=0;j<16;j++){
 			tmpset[i][j] = set[i][j];
 		}
 	}
-/* test de la fonction  intersectionKey 
 
 
-	unsigned char **tab1 = NULL;
-	unsigned char **tab2 = NULL;
-	tab1 = (unsigned char**) malloc(sizeof(unsigned char*)*16);
-	tab2 = (unsigned char**) malloc(sizeof(unsigned char*)*16);
-
-	for(int i = 0; i<16; i++){
-		tab1[i] = (unsigned char*) malloc(sizeof(unsigned char)*2);
-		tab2[i] = (unsigned char*) malloc(sizeof(unsigned char)*2);
-	}
-	for(int i= 0; i<16;i++){
-		tab1[i][0] = i;
-		tab1[i][1] = i+1; 
-		tab2[i][0] = i+1;
-		tab2[i][1] = i+2; 
-	}
-
-	unsigned char * key = NULL;
-	key = malloc(sizeof(unsigned char)*16);
-	key = intersectionKey(tab1,tab2);
-
-	for(int k = 0; k<16 ; k++){
-		printf("%d ",key[k]);
-	}
-	*/
-
-
-// attaque --> 
+	// attaque --> 
 	unsigned char **KeySuggested = NULL;
-	suggestedKey(KeySuggested,tmpset); // -> retourne un ensemble d'octets possible pour la clé 
-
-	
-
-
-	// trouver toutes les combinaisons de clé à partir de KeySuggested.
-	// faire la fonction inverse d'expandKey pour retrouver la clé initiale.
-
+	int tailleKeySuggested = NULL;
+	suggestedKey(KeySuggested,tailleKeySuggested,tmpset); // -> octet de clé suggeré et le nombre d'octets pour chaque case de la matrice dans tailleKey..
 	
 }

@@ -28,6 +28,29 @@ unsigned char invSBOX[256] =
 	0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
 
+unsigned char Sbox[256] = 
+ {
+    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
+    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
+    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
+    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
+    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
+    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
+    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
+    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
+    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
+    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
+    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
+    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
+    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
+    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
+    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
+    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
+ };
+
+
+unsigned char Rcon[11] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
@@ -115,12 +138,10 @@ int balancedByte(unsigned char set[256]){
 
 //----- Fonctions sur 1 octet ----- //
 
-
-
 void invShiftRows(unsigned char state[4][4])
 {
 	//Déclaration d'une matrice temporaire 
-	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+	unsigned char tmp[4][4] = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
 	//Shift de la matrice 
 	for (int s = 0; s<4 ; s++)
@@ -141,6 +162,118 @@ void invShiftRows(unsigned char state[4][4])
     }
 }
 
+/////// Fonctions d'attaques 
+
+// fonction qui renvoi un tableau d'octet possible composant la cle.
+
+void suggestedKey(unsigned char **KeySuggested,int * tailleKeySuggested, unsigned char tmpset[256][16]){
+
+	KeySuggested = (unsigned char**) malloc(sizeof(unsigned char*)*16);
+	tailleKeySuggested = (int*) malloc(sizeof(int)*16);
+
+
+	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
+		
+		int compteurDeCle = 1;
+		printf("%d ---> ",a);
+
+		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
+
+			unsigned char tmpSet[256]; 
+			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+				
+				unsigned char tmp = tmpset[i][a] ^ k; 
+				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				tmpSet[i] = tmp;
+			}
+			if (balancedByte(tmpSet)==0){
+				
+				if(compteurDeCle == 1){
+					KeySuggested[a] = (unsigned char*) malloc(sizeof(unsigned char));
+					
+					if(KeySuggested[a] == NULL){
+						printf("erreur 1\n");
+						exit(0);
+					}
+				}
+				else{
+					KeySuggested[a] = realloc(KeySuggested[a], sizeof(unsigned char)*(compteurDeCle));
+					if(KeySuggested[a] == NULL){
+						printf("erreur 2\n");
+						exit(0);
+					}
+				}
+				KeySuggested[a][compteurDeCle] = k;
+				printf("%x ",KeySuggested[a][compteurDeCle]);
+				
+				compteurDeCle++;
+			}
+
+		}
+		tailleKeySuggested[a] = compteurDeCle-1;
+		printf("\n");
+	}
+}
+
+// fonction qui retourne la clé initiale à partir d'une sous clé.
+
+unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
+	unsigned char * tmpKey = NULL;
+	tmpKey = malloc(sizeof(unsigned char)*16);
+	
+
+	for(int i= 0; i<16;i++){
+		tmpKey[i] = 0;
+	}
+
+	for (int i=0; i<nbtours;i++){
+		
+		for (int j=15;j>=0;j--){
+			if(j>=4){
+				tmpKey[j]=key[j]^key[j-4];
+			}
+			else{
+				switch(j){
+					case 3 : 
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[12]];
+						break;
+					case 2 : 
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[15]];
+						break;
+					case 1 :
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[14]];
+						break;
+					case 0 :
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[13]]^Rcon[nbtours - i];
+						break;
+				}
+			}
+		}
+		for(int s = 0; s<16; s++){
+			key[s]= tmpKey[s];
+		}	
+	}
+	return key;
+};
+
+// fonction qui retourne l'intersection de 2 tableaux 
+
+unsigned char * intersectionKey(unsigned char **tab1 , int *tailleTab1, unsigned char **tab2, int * tailleTab2){
+	unsigned char *key = NULL;
+	key = malloc(sizeof(unsigned char)*16);
+
+	for (int i=0; i<16; i++){
+		for(int j=0; j<tailleTab1[i];j++){
+			for(int k=0; k<tailleTab2[i];k++){
+				if(tab1[i][j]==tab2[i][k]){
+					key[i] = tab1[i][j];
+				}
+			}
+		}
+	}
+	return key;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -153,8 +286,7 @@ int main(int argc, char* argv[])
 	int compteur_ligne = 0;
 	char tab[3]= "00";
 	unsigned char set[256][16];
-
-
+	
 	//ecriture du lambda set chiffré dans un tableau 
 	FILE* chiffres; 
 	chiffres = fopen("set.txt", "r"); 
@@ -199,91 +331,19 @@ int main(int argc, char* argv[])
 			}
 		}
 		printf("\n");
-	}
+	}*/
 	
-*/
-
-
-	//guess de cle 
 	unsigned char tmpset[256][16]; //Ajout du set dans tmpset
 	for(int i=0;i<256;i++){
 		for(int j=0;j<16;j++){
 			tmpset[i][j] = set[i][j];
 		}
 	}
-/*				                            Sans allocation dynamique
-	unsigned char KeySuggested[16][5];
-	for(int i=0;i<16;i++){
-		for(int j=0;j<10;j++){
-			KeySuggested[i][j]=0;
-		}
-	}
-*/
-										// avec allocation dynamique
-	unsigned char **KeySuggested2;
-	KeySuggested2 = malloc(sizeof(unsigned char)*16);
-	if(KeySuggested2 == NULL){
-		exit(0);
-	}
-
-	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
-		
-		int compteurDeCle = 1;
-		printf("%d ---> ",a);
-
-		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
-
-			unsigned char tmpSet[256]; 
-			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
-				
-				unsigned char tmp = tmpset[i][a] ^ k; 
-				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
-				tmpSet[i] = tmp;
-			}
-	
-			if (balancedByte(tmpSet)==0){
-				
-				// KeySuggested[a][compteurDeCle-1] = k 
-				if(compteurDeCle == 1){
-					KeySuggested2[a] = malloc(sizeof(unsigned char));
-					if(KeySuggested2[a] == NULL){
-						exit(0);
-					}
-				} 
-				else{
-					KeySuggested2[a] = realloc(KeySuggested2[a], sizeof(unsigned char)*(compteurDeCle));
-					if(KeySuggested2[a] == NULL){
-						exit(0);
-					}
-				}
-				KeySuggested2[a][compteurDeCle] = k;
-				printf("%x ",KeySuggested2[a][compteurDeCle]);
-				
-				compteurDeCle++;
-			}
-		
-		}
-		printf("\n");
-	
-	}
-
-	
-
-free(KeySuggested2);
 
 
-/*
-	for(int i=0;i<16;i++){
-		for(int j=0;j<5;j++){
-			printf("%x ",KeySuggested[i][j]);
-		}
-		printf("\n");
-	}
-*/
-	
-
-	// trouver toutes les combinaisons de clé à partir de KeySuggested.
-	// faire la fonction inverse d'expandKey pour retrouver la clé initiale.
-
+	// attaque --> 
+	unsigned char **KeySuggested = NULL;
+	int tailleKeySuggested = NULL;
+	suggestedKey(KeySuggested,tailleKeySuggested,tmpset); // -> octet de clé suggeré et le nombre d'octets pour chaque case de la matrice dans tailleKey..
 	
 }

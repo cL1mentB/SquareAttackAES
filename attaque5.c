@@ -131,28 +131,40 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
         state[(i/2)/4][(i/2)%4] = val;
     }
 }
+/*
+void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
+	unsigned char tmp[4];
+		for(int i=0;i<4;i++){
+			for(int s=0;s<4;s++){
+				switch (Inv_tab_mixCol[i][s]){
+				case 9:
+					tmp[i] = tmp[i] ^ m9[col[s]];
+				case 11:
+					tmp[i] = tmp[i] ^ m11[col[s]];
+				case 13:
+					tmp[i] = tmp[i] ^ m13[col[s]];
+				case 14:
+					tmp[i] = tmp[i] ^ m14[col[s]];
+				}
+			}
+		}
+	
+	//recopiage dans col
+	
+		for (int i=0;i<4;i++){
+			col[i] = tmp[i];
+		}
+	}*/
+
 
 void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
 	unsigned char tmp[4];
 
+	tmp[0] = m14[col[0]]^m11[col[1]]^m13[col[2]]^m9[col[3]];
+	tmp[1] = m9[col[0]]^m14[col[1]]^m11[col[2]]^m13[col[3]];
+	tmp[2] = m13[col[0]]^m9[col[1]]^m14[col[2]]^m11[col[3]];
+	tmp[3] = m11[col[0]]^m13[col[1]]^m9[col[2]]^m14[col[3]];
 
-		for(int i=0;i<4;i++){
-			for(int s=0;s<4;s++){
-				if(Inv_tab_mixCol[i][s] == 9){
-					tmp[i] = tmp[i] ^ m9[col[s]];
-				}
-				else if(Inv_tab_mixCol[i][s] == 11){
-					tmp[i] = tmp[i] ^ m11[col[s]];
-				}
-				else if(Inv_tab_mixCol[i][s] == 13){
-					tmp[i] = tmp[i] ^ m13[col[s]];
-				}
-				else{
-					tmp[i] = tmp[i] ^ m14[col[s]];
-				}	
-			}
-		}
-	
 	//recopiage dans col
 	
 		for (int i=0;i<4;i++){
@@ -246,7 +258,7 @@ int TestCell(unsigned char set[256])
 	unsigned char somme = 0;
 	for(int j = 0; j<256; j++)
 	{
-		//Fais un XOR avec tous les éléments du tableau  pour voir si la case est équilibrée
+		//Fais un XOR avec tous les éléments du tableau pour voir si la case est équilibrée
  		somme = somme ^ set[j]; 
  	}
 
@@ -303,7 +315,6 @@ unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsig
 				printf("%d\n",k);
 				
    				 for(int l =0; l<256;l++){
-						
    					for(int b= 0; b<256; b++){ //hypothèses de beta (1 octet) 
 						K5[0] = i ;
 						K5[1] = j ;
@@ -311,27 +322,12 @@ unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsig
 						K5[3] = l ;
 						
 						//Teste equilibre de la cellule sur les lambdas set 
-						if (TestLamdbaSet(D1, K5, b )== 1)
+						if (TestLamdbaSet(D1, K5, b ) && TestLamdbaSet(D2, K5, b ) && TestLamdbaSet(D3, K5, b ) && TestLamdbaSet(D4, K5, b ) && TestLamdbaSet(D5, K5, b ) && TestLamdbaSet(D6, K5, b ))
 						{
-							if (TestLamdbaSet(D2, K5, b )== 1)
-							{
-								if (TestLamdbaSet(D3, K5, b )== 1)
-								{
-									if (TestLamdbaSet(D4, K5, b )== 1)
-									{
-										if (TestLamdbaSet(D5, K5, b )== 1)
-										{
-											if (TestLamdbaSet(D6, K5, b )== 1)
-											{
-												for(int z=0;z<4;z++){
-													printf("%x ",K5[z]);
-												}
-												return K5;
-											}
-										}
-									}
-								}
+							for(int z=0;z<4;z++){
+								printf("%x ",K5[z]);
 							}
+							return K5;
 						}
 					}
    				}

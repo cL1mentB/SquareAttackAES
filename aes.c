@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////// outils  ///////////////////////////////////////////////
+///////////////////////////////////   AES   ///////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned char Sbox[256] = 
@@ -26,6 +26,7 @@ unsigned char Sbox[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
  };
 
+// pour mixColumns
 unsigned char m2[256] = {0x00,0x02,0x04,0x06,0x08,0x0A,0x0C,0x0E,0x10,0x12,0x14,0x16,0x18,0x1A,0x1C,0x1E,
       0x20,0x22,0x24,0x26,0x28,0x2A,0x2C,0x2E,0x30,0x32,0x34,0x36,0x38,0x3A,0x3C,0x3E,
       0x40,0x42,0x44,0x46,0x48,0x4A,0x4C,0x4E,0x50,0x52,0x54,0x56,0x58,0x5A,0x5C,0x5E,
@@ -63,9 +64,6 @@ unsigned char m3[256] = {0x00,0x03,0x06,0x05,0x0C,0x0F,0x0A,0x09,0x18,0x1B,0x1E,
   };
 
 
-//matrice MixColonne
-unsigned char tab_mixCol[4][4] = {{0x02,0x03,0x01,0x01},{0x01,0x02,0x03,0x01},{0x01,0x01,0x02,0x03},{0x03,0x01,0x01,0x02}};
-
 unsigned char Rcon[11] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -95,22 +93,60 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
     {
     	//Pour récupérer les caractères deux par deux
         strncpy(init, (char *)message+i, 2);
-        //Pour les transformer en hexa
+        //Pour les transformer en hexadécimal
         sscanf(init, "%x", &val);
         //Pour les ajouter dans la matrice dans l'ordre
         state[(i/2)%4][(i/2)/4] = val;
     }
 }
 
+//Fonction qui prend en entrée une matrice et renvoie la matrice passée dans la Sbox
+void SubBytes(unsigned char state[4][4])
+{
+    for (int i = 0; i<4; i++)
+    {
+      for(int j = 0; j<4; j++ )
+      {
+        state[i][j] = Sbox[state[i][j]]; 
+      }
+    }
+    
+}
+
+//Fonction qui prend en entrée une matrice et renvoie la matrice shiftée vers la gauche sur les lignes
+void ShiftRows(unsigned char state[4][4])
+{
+  //Déclaration d'une matrice temporaire 
+  unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+
+  //Shift de la matrice 
+  for (int s = 0; s<4 ; s++)
+  {
+    for(int j=0; j< 4; j++)
+    {
+      tmp[s][j] = state[s][(j+s)%4];
+    }
+  }
+   
+    //Recopiage de la matrice temporaire sur la matrice d'origine
+    for (int i = 0; i<4; i++)
+    {
+      for(int j = 0; j<4; j++ )
+      {
+        state[i][j] = tmp[i][j]; 
+      }
+    }
+}
 
 
-//Fonction qui prend en entrée une matrice et renvoie la matrice multipliée par une matrice définie 
+
+//Fonction qui prend en entrée une matrice et renvoie la matrice transformée par l'pplication du Mixcolonne
 void MixColumns(unsigned char state[4][4])
 {
-	//Declaration de matrice intermediaire 
+	//Déclaration d'une matrice temporaire
 	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
-	//multiplication des matrices dans une matrice temporaire
+	//
 	for (int i = 0; i<4; i++)
     {
         tmp[0][i] = m2[state[0][i]]^m3[state[1][i]]^state[2][i]^state[3][i];
@@ -119,7 +155,7 @@ void MixColumns(unsigned char state[4][4])
         tmp[3][i] = m3[state[0][i]]^state[1][i]^state[2][i]^m2[state[3][i]];
     }
 
-    //recopiage de tmp sur state
+    //Recopiage de la matrice temporaire sur la matrice d'origine
     for (int i = 0; i<4; i++)
     {
     	for(int j = 0; j<4; j++ )
@@ -129,43 +165,6 @@ void MixColumns(unsigned char state[4][4])
     }
 }
 
-//Fonction qui prend en entrée une matrice et renvoie la matrice passée dans une Sbox
-void SubBytes(unsigned char state[4][4])
-{
-    for (int i = 0; i<4; i++)
-    {
-    	for(int j = 0; j<4; j++ )
-    	{
-     		state[i][j] = Sbox[state[i][j]]; 
-     	}
-    }
-    
-}
-
-//Fonction qui prend en entrée une matrice et renvoie la matrice shiftée vers la gauche sur les lignes
-void ShiftRows(unsigned char state[4][4])
-{
-	//Déclaration d'une matrice temporaire 
-	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
-
-	//Shift de la matrice 
-	for (int s = 0; s<4 ; s++)
-	{
-		for(int j=0; j< 4; j++)
-		{
-			tmp[s][j] = state[s][(j+s)%4];
-		}
-	}
-   
-    //recopiage de tmp sur state
-    for (int i = 0; i<4; i++)
-    {
-    	for(int j = 0; j<4; j++ )
-    	{
-     		state[i][j] = tmp[i][j]; 
-     	}
-    }
-}
 
 
 //Fonction qui prend en entrée une matrice et une sous-clef K_i de 128 bits et renvoie le XOR des deux
@@ -182,8 +181,8 @@ void AddRoundKey(unsigned char state[4][4], unsigned char * expandedKey,int tour
 }
 
 
-//Fonction de KeyExpansion qui prend en entrée la clé de base et le nombre de tour
-//retourne un tableau de 176 cases contenant les nbtours+1 clés. 
+//Fonction de KeyExpansion qui prend en entrée la clé initiale et le nombre de tour de l'AES
+//Et retourne un tableau contenant les nbtours+1 clés. 
 unsigned char * KeyExpansion(unsigned char key[16],int nbtours){ 
     
     unsigned char * expandedKey = malloc( (nbtours+1)*16);
@@ -220,72 +219,50 @@ unsigned char * KeyExpansion(unsigned char key[16],int nbtours){
 
 
 
-//Fonction de chiffrement de l'AES qui prend en entrée un message, un nombre de tours et une clef et qui renvoie le chiffré
+//Fonction de chiffrement de l'AES qui prend en entrée un message de 16 octets, un nombre de tours, une clé et qui renvoie le chiffré correspondant
 void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
 	//Key schedule
 	unsigned char * expandedKey = KeyExpansion(key,nbtours);
 
 	//Tour 0
-    printf("tour 0 \n");
-	AddRoundKey(state, expandedKey,0); //Normalement, on met key_0
-    affichage(state);
+	AddRoundKey(state, expandedKey,0); //On xor avec key_0
 
 	//Tours 1 à n-1
 	for(int i=1; i<nbtours; i++){
-        printf("%d  --> \n",i);
-        printf("SB \n");
-		SubBytes(state);
-        affichage(state);
 
-        printf("SR \n");
+    SubBytes(state);
 		ShiftRows(state);
-        affichage(state);
-        printf("MC \n");
 		MixColumns(state);
-
-        affichage(state);
-        printf("ARK \n");
-		AddRoundKey(state, expandedKey,i); //Normalement, on met key_i   
-        affichage(state);
-    }
+    AddRoundKey(state, expandedKey,i); //On xor avec key_i   
+  }
 
 	//Tour final
-    printf("tour final\n");
-    printf("SB \n");
 	SubBytes(state);
-    affichage(state);
-    printf("SR \n");
 	ShiftRows(state);
-    affichage(state);
-    printf("ARK \n");
-	AddRoundKey(state, expandedKey, nbtours); //Normalement, on met key_n
+	AddRoundKey(state, expandedKey, nbtours); //On xor avec key_n
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
 unsigned char key3[16] = {0x94,0xa4,0x5f,0x2f,0xe8,0x4c,0x51,0xc4,0x2e,0x54,0x48,0x5c,0x3e,0xd2,0xe6,0x8f};
 
 int main(int argc, char* argv[])
 {
     
-	//initialisation du message 
+	//Initialisation du message 
 	char * message = "6b6b6b6b6b006b6b6b6b6b6b6b6b6b6b";
-    //char * message = "000102030405060708090a0b0c0d0e0f";
-    //unsigned char key2[16] = {0x00,0x01 ,0x02 ,0x03 ,0x04 ,0x05 ,0x06 ,0x07 ,0x08 ,0x09 ,0x0a ,0x0b ,0x0c ,0x0d ,0x0e ,0x0f};
-	
-	
-	//initialisation de la matrice message
+    
+	//Initialisation de la matrice contenant le message
 	unsigned char state[4][4]; 
 	initialisation(state, (unsigned char*)message);
-    affichage(state);
+  
 	
-	//chiffrement
+	//Chiffrement du message 
 	encryption_AES(4, state, key3);
-
-    affichage(state);
-	
+  affichage(state);
 
 	return 0;
 }

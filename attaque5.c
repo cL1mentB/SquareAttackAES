@@ -132,34 +132,34 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
     }
 }
 
-void InvMixCol(unsigned char col[256][4]){ // InvMixCol sur charque colonne d'un set
-	unsigned char tmp[256][4];
+void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
+	unsigned char tmp[4];
 
-	for(int l = 0;l<256;l++){
+
 		for(int i=0;i<4;i++){
 			for(int s=0;s<4;s++){
 				if(Inv_tab_mixCol[i][s] == 9){
-					tmp[i] = tmp[i] ^ m9[col[l][s]];
+					tmp[i] = tmp[i] ^ m9[col[s]];
 				}
 				else if(Inv_tab_mixCol[i][s] == 11){
-					tmp[i] = tmp[i] ^ m11[col[l][s]];
+					tmp[i] = tmp[i] ^ m11[col[s]];
 				}
 				else if(Inv_tab_mixCol[i][s] == 13){
-					tmp[i] = tmp[i] ^ m13[col[l][s]];
+					tmp[i] = tmp[i] ^ m13[col[s]];
 				}
 				else{
-					tmp[i] = tmp[i] ^ m14[col[l][s]];
+					tmp[i] = tmp[i] ^ m14[col[s]];
 				}	
 			}
 		}
-	}
+	
 	//recopiage dans col
-	for(int l =0;l<256;l++){
+	
 		for (int i=0;i<4;i++){
-			col[256][i] = tmp[256][i];
+			col[i] = tmp[i];
 		}
 	}
-}
+
 
 void InvMixColumns(unsigned char state[4][4]) //InvMix sur une matrice
 {
@@ -281,7 +281,7 @@ int TestLamdbaSet(unsigned char Diagonal_Chiffre[256][4], unsigned char K5[4],un
 		{
 			y[n][m] = invSBOX[Diagonal_Chiffre[n][m]^K5[m]];
 		}
-		//InvMixcol(y);
+		InvMixCol(y[n]);
 		x[n] = invSBOX[b ^y[n][3]];
 	}
 	if (TestCell(x) == 1)
@@ -291,6 +291,55 @@ int TestLamdbaSet(unsigned char Diagonal_Chiffre[256][4], unsigned char K5[4],un
 	return 0;
 }
 
+
+unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsigned char D2[256][4],unsigned char D3[256][4],unsigned char D4[256][4],unsigned char D5[256][4],unsigned char D6[256][4]){
+	
+	//Hypothèses de 4 octets de clés de K5
+    for(int i =0; i<256;i++){
+		
+    	for(int j =0; j<256;j++){
+			
+    		for(int k =0; k<256;k++){
+				printf("%d\n",k);
+				
+   				 for(int l =0; l<256;l++){
+						
+   					for(int b= 0; b<256; b++){ //hypothèses de beta (1 octet) 
+						K5[0] = i ;
+						K5[1] = j ;
+						K5[2] = k ;
+						K5[3] = l ;
+						
+						//Teste equilibre de la cellule sur les lambdas set 
+						if (TestLamdbaSet(D1, K5, b )== 1)
+						{
+							if (TestLamdbaSet(D2, K5, b )== 1)
+							{
+								if (TestLamdbaSet(D3, K5, b )== 1)
+								{
+									if (TestLamdbaSet(D4, K5, b )== 1)
+									{
+										if (TestLamdbaSet(D5, K5, b )== 1)
+										{
+											if (TestLamdbaSet(D6, K5, b )== 1)
+											{
+												for(int z=0;z<4;z++){
+													printf("%x ",K5[z]);
+												}
+												return K5;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+   				}
+    		}
+    	}
+    }
+	return K5;
+}
 
 
 
@@ -315,12 +364,12 @@ int main(int argc, char* argv[])
 
 	//Récupération des lamdba set dans des tableaux 
 	
-	char* titre1 = "set1.txt";
-	char* titre2 = "set2.txt";
-	char* titre3 = "set3.txt";
-	char* titre4 = "set4.txt";
-	char* titre5 = "set5.txt";
-	char* titre6 = "set6.txt";
+	char* titre1 = "AES5_ciphered_set_1_key_C.txt";
+	char* titre2 = "AES5_ciphered_set_2_key_C.txt";
+	char* titre3 = "AES5_ciphered_set_3_key_C.txt";
+	char* titre4 = "AES5_ciphered_set_4_key_C.txt";
+	char* titre5 = "AES5_ciphered_set_5_key_C.txt";
+	char* titre6 = "AES5_ciphered_set_6_key_C.txt";
 
 	unsigned char set1[256][16];
 	unsigned char set2[256][16];
@@ -336,6 +385,46 @@ int main(int argc, char* argv[])
 	Recup_set(set5, titre5);
 	Recup_set(set6, titre6);
 
+	unsigned char tmpset1[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset1[i][j] = set1[i][j];
+		}
+	}
+
+	unsigned char tmpset2[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset2[i][j] = set2[i][j];
+		}
+	}
+	unsigned char tmpset3[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset3[i][j] = set3[i][j];
+		}
+	}
+
+	unsigned char tmpset4[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset4[i][j] = set4[i][j];
+		}
+	}
+	unsigned char tmpset5[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset5[i][j] = set5[i][j];
+		}
+	}
+
+	unsigned char tmpset6[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset6[i][j] = set6[i][j];
+		}
+	}
+
 	//attaque sur les diagonales
 
 
@@ -350,61 +439,14 @@ int main(int argc, char* argv[])
 
 
 
-	Recup_Diag(set1, Diagonal_Chiffre1);
-	Recup_Diag(set2, Diagonal_Chiffre2);
-	Recup_Diag(set3, Diagonal_Chiffre3);
-	Recup_Diag(set4, Diagonal_Chiffre4);
-	Recup_Diag(set5, Diagonal_Chiffre5);
-	Recup_Diag(set6, Diagonal_Chiffre6);
+	Recup_Diag(tmpset1, Diagonal_Chiffre1);
+	Recup_Diag(tmpset2, Diagonal_Chiffre2);
+	Recup_Diag(tmpset3, Diagonal_Chiffre3);
+	Recup_Diag(tmpset4, Diagonal_Chiffre4);
+	Recup_Diag(tmpset5, Diagonal_Chiffre5);
+	Recup_Diag(tmpset6, Diagonal_Chiffre6);
 
 
-	//Hypothèses de 4 octets de clés de K5
-    for(int i =0; i<256;i++)
-    {
-    	for(int j =0; j<256;j++)
-    	{
-    		for(int k =0; k<256;k++)
-    		{
-   				 for(int l =0; l<256;l++)
-   				{
-   					//hypothèses de beta(1 octet) 
-   					for(int b= 0; b<256; b++)
-   					{
-						K5[0] = i ; 
-						K5[1] = j ;
-						K5[2] = k ;
-						K5[3] = l ;
+	Diagonale_Key(K5,Diagonal_Chiffre1,Diagonal_Chiffre2,Diagonal_Chiffre3,Diagonal_Chiffre4,Diagonal_Chiffre5,Diagonal_Chiffre6);
 
-						//Teste equilibre de la cellule sur les lambdas set 
-						if (TestLamdbaSet(Diagonal_Chiffre1, K5, b )== 1)
-						{
-							if (TestLamdbaSet(Diagonal_Chiffre2, K5, b )== 1)
-							{
-								if (TestLamdbaSet(Diagonal_Chiffre3, K5, b )== 1)
-								{
-									if (TestLamdbaSet(Diagonal_Chiffre4, K5, b )== 1)
-									{
-										if (TestLamdbaSet(Diagonal_Chiffre5, K5, b )== 1)
-										{
-											if (TestLamdbaSet(Diagonal_Chiffre6, K5, b )== 1)
-											{
-												//on garde K5 
-											}
-
-										}
-
-									}
-
-								}
-
-							}
-
-						}
-					}
-   				}
-    		}
-    	}
-    }
-	
-	
 }

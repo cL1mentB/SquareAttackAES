@@ -215,6 +215,43 @@ void suggestedKey(unsigned char **KeySuggested,int * tailleKeySuggested, unsigne
 	}
 }
 
+
+
+
+void suggestedKey1(unsigned char KeySuggested[16], unsigned char tmpset[256][16],unsigned char tmpset1[256][16]){
+
+	
+
+
+	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
+		printf("%d ---> ",a);
+
+		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
+
+			unsigned char tmpSet[256]; 
+			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+				
+				unsigned char tmp = tmpset[i][a] ^ k; 
+				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				tmpSet[i] = tmp;
+			}
+			if (balancedByte(tmpSet)==0){
+				
+				for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+					
+					unsigned char tmp1 = tmpset1[i][a] ^ k; 
+					tmp1 = InvSubBytes(tmp1);  // InvSubBytes(d ^ k) 
+					tmpSet[i] = tmp1;
+				}
+				if (balancedByte(tmpSet)==0){
+					KeySuggested[a] = k;
+					printf("%x ",KeySuggested[a]);
+				}
+			}
+		}
+		printf("\n");
+	}
+}
 // fonction qui retourne la clé initiale à partir d'une sous clé.
 
 unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
@@ -278,6 +315,9 @@ unsigned char * intersectionKey(unsigned char **tab1 , int *tailleTab1, unsigned
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+unsigned char key[16] = {0xb7,0x22,0xd9,0x96,0x3a,0x99,0x41,0x59,0x5a,0x3a,0xc3,0x36,0x0f,0x61,0x88,0x73};
+
+
 
 
 int main(int argc, char* argv[])
@@ -289,7 +329,7 @@ int main(int argc, char* argv[])
 	
 	//ecriture du lambda set chiffré dans un tableau 
 	FILE* chiffres; 
-	chiffres = fopen("set.txt", "r"); 
+	chiffres = fopen("AES4_ciphered_set_1_key_B.txt", "r"); 
 
 	char * buffer = (char *) malloc(40);
     while ( ! feof( chiffres) ) 
@@ -319,6 +359,42 @@ int main(int argc, char* argv[])
 	fclose(chiffres);
 
 
+	compteur_ligne = 0;
+	char tab1[3]= "00";
+	unsigned char set1[256][16];
+	
+	//ecriture du lambda set chiffré dans un tableau 
+	FILE* chiffres1; 
+	chiffres1 = fopen("AES4_ciphered_set_2_key_B.txt", "r"); 
+
+	char * buffer1 = (char *) malloc(40);
+    while ( ! feof( chiffres1) ) 
+    {
+        fgets((char *)buffer, 40 , chiffres1);
+        if ( ferror(chiffres1) ) 
+        {
+			fprintf(stderr, "Reading error wih code %d\n",errno);
+			break;
+		}
+        //parcour des lignes chiffres et ajout au tableau 
+    
+    	for(int j=0; j<32; j+=2)
+    	{
+    		//Pour récupérer les caractères deux par deux
+	        strncpy(tab1, (char *)buffer1+j, 2);
+	        //Pour les transformer en hexa
+	        sscanf(tab1, "%x", &val);
+	        //Pour les ajouter dans la matrice dans l'ordre
+	        set1[compteur_ligne][j/2] = val;
+    	}
+   
+        compteur_ligne = compteur_ligne +1;
+        //puts( (char *)buffer );  //affichage des lignes recup      
+    }
+    free( buffer1 ); 
+	fclose(chiffres1);
+
+
 	//affichage du set chiffré à partir du tableau
 	/*
 	for(int i=0;i<256;i++){
@@ -340,10 +416,23 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	unsigned char tmpset1[256][16]; //Ajout du set dans tmpset
+	for(int i=0;i<256;i++){
+		for(int j=0;j<16;j++){
+			tmpset1[i][j] = set1[i][j];
+		}
+	}
+
 
 	// attaque --> 
-	unsigned char **KeySuggested = NULL;
-	int tailleKeySuggested = NULL;
-	suggestedKey(KeySuggested,tailleKeySuggested,tmpset); // -> octet de clé suggeré et le nombre d'octets pour chaque case de la matrice dans tailleKey..
+	unsigned char KeySuggested[16];
+	
+	suggestedKey1(KeySuggested,tmpset,tmpset1); // -> octet de clé suggeré et le nombre d'octets pour chaque case de la matrice dans tailleKey..
+	
+	/*
+	
+	for(int i=0; i<16; i++){
+		printf("%x  ",KeySuggested[i]);
+	}*/
 	
 }

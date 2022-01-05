@@ -8,6 +8,7 @@ Afin de mener à bien cette attaque, il est nécessaire de posséder 2 lambdaSet
 
 Implémentaion de l'attaque:
 -attaque4.c
+//Ne prends rien en entrée et affiche en sortie la clé initiale utilisée lors du chiffrement des 2 lambdaSets forunis, ainsi que la clé de tour 4 de celle ci.
 
 Les 2 lambdaSets chiffrés fournis sont :
 -AES4_ciphered_set_1_key_B.txt
@@ -21,6 +22,7 @@ Afin de mener à bien cette attaque, il est nécessaire de posséder 6 lambdaSet
 
 Implémentation de l'attaque:
 -attaque5.c
+//Ne prends rien en entrée et affiche en sortie la clé initiale utilisée lors du chiffrement des 6 lambdaSets forunis, ainsi que la clé de tour 5 de celle ci.
 
 Les 6 lambdaSets chiffrés fournis sont :
 -AES5_ciphered_set_1_key_C.txt

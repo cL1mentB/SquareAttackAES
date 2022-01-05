@@ -56,77 +56,15 @@ unsigned char Rcon[11] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 
 /////////////////////////////////// Fonctions /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//Fonction qui affiche une matrice 4*4 en hexadécimal
-void affichage(unsigned char state[4][4]){
-	for(int i=0 ; i<4; i++)
-	{
-		printf("|");
-		for(int j=0; j<4; j++)
-		{
-			printf(" %x |",state[i][j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
-
-//fonction qui xor tout le tableau avec une clé
-void AddRoundKey(unsigned char set[256][16], unsigned char Key[16])
-{
-    for (int i = 0; i<256; i++)
-    {
-    	for(int j = 0; j<16; j++)
-    	{
-     		set[i][j] = set[i][j]^Key[j]; 
-     	}
-    }
-}
-
-//Fonction qui prend en entrée une liste de 256 messages et renvoie true s'ils sont équilibrés ou non
-int TestCell(unsigned char set[256][16])
-{
-	int b = 1;
-	unsigned char somme[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    for (int i = 0; i<256; i++)
-    {
-    	for(int j = 0; j<16; j++)
-    	{
-    		//Fais un XOR avec tous les éléments d'une colonne pour savoir si elle est équilibrée
-     		somme[j] = somme[j] ^ set[i][j]; 
-     	}
-    }
- 
-
-    for(int j = 0; j<16; j++)
-	{
-		if(somme[j]!=0){
-			b = 0;
-		}
- 	}
- 	return b;
-}
-
-//Fonction qui prend en entrée le tableau de 256 chiffrés et renvoie les messages passés dans la SboxInv
-void SubBytesInv(unsigned char set[256][16])
-{
-    for (int i = 0; i<256; i++)
-    {
-    	for(int j = 0; j<16; j++)
-    	{
-     		set[i][j] = invSBOX[set[i][j]]; 
-     	}
-    }
-}
-
-
 //----- Fonctions sur 1 octet ----- //
 
-//Fonction qui prend en entrée un octet du set et un octet de la clé et renvoi l'octet passé dans la SboxInv
+//Fonction qui prend en entrée un octet du set et renvoi l'octet passé dans la SboxInv
 unsigned char InvSubBytes(unsigned char set){
 	set = invSBOX[set];
 	return set;
 }
 
+//Fonction qui retourne la somme des cellules d'un set
 int balancedByte(unsigned char set[256]){
 	unsigned char somme = 0;
 	for(int i=0;i<256;i++){
@@ -136,124 +74,40 @@ int balancedByte(unsigned char set[256]){
 }
 
 
-//----- Fonctions sur 1 octet ----- //
-
-void invShiftRows(unsigned char state[4][4])
-{
-	//Déclaration d'une matrice temporaire 
-	unsigned char tmp[4][4] = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
-
-	//Shift de la matrice 
-	for (int s = 0; s<4 ; s++)
-	{
-		for(int j=0; j< 4; j++)
-		{
-			tmp[s][j] = state[s][(j-s)%4];
-		}
-	}
-   
-    //recopiage de tmp sur state
-    for (int i = 0; i<4; i++)
-    {
-    	for(int j = 0; j<4; j++ )
-    	{
-     		state[i][j] = tmp[i][j]; 
-     	}
-    }
-}
-
-/////// Fonctions d'attaques 
-
-// fonction qui renvoi un tableau d'octet possible composant la cle.
-
-void suggestedKey(unsigned char **KeySuggested,int * tailleKeySuggested, unsigned char tmpset[256][16]){
-
-	KeySuggested = (unsigned char**) malloc(sizeof(unsigned char*)*16);
-	tailleKeySuggested = (int*) malloc(sizeof(int)*16);
+//----- Fonctions d'attaques  ----- //
 
 
-	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
-		
-		int compteurDeCle = 1;
-		printf("%d ---> ",a);
-
-		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
-
-			unsigned char tmpSet[256]; 
-			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
-				
-				unsigned char tmp = tmpset[i][a] ^ k; 
-				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
-				tmpSet[i] = tmp;
-			}
-			if (balancedByte(tmpSet)==0){
-				
-				if(compteurDeCle == 1){
-					KeySuggested[a] = (unsigned char*) malloc(sizeof(unsigned char));
-					
-					if(KeySuggested[a] == NULL){
-						printf("erreur 1\n");
-						exit(0);
-					}
-				}
-				else{
-					KeySuggested[a] = realloc(KeySuggested[a], sizeof(unsigned char)*(compteurDeCle));
-					if(KeySuggested[a] == NULL){
-						printf("erreur 2\n");
-						exit(0);
-					}
-				}
-				KeySuggested[a][compteurDeCle] = k;
-				printf("%x ",KeySuggested[a][compteurDeCle]);
-				
-				compteurDeCle++;
-			}
-
-		}
-		tailleKeySuggested[a] = compteurDeCle-1;
-		printf("\n");
-	}
-}
-
-
-
-
+//Fonction qui renvoie la clé du tour 4.
 void suggestedKey1(unsigned char KeySuggested[16], unsigned char tmpset[256][16],unsigned char tmpset1[256][16]){
 
-	
-
-
 	for(int a=0; a<16; a++){ // a = 4*i + j sur la matrice State
-		printf("%d ---> ",a);
 
 		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
 
 			unsigned char tmpSet[256]; 
-			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+			for(int i=0; i<256; i++){	//On parcourt les 256 octets du premier lambdaSet
 				
-				unsigned char tmp = tmpset[i][a] ^ k; 
-				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				unsigned char tmp = tmpset[i][a] ^ k; //On xor chaque octet avec la clé supposée 
+				tmp = InvSubBytes(tmp);  //On calcule l'inverse de SubBytes du résultat du calcul précédent
 				tmpSet[i] = tmp;
 			}
-			if (balancedByte(tmpSet)==0){
+			if (balancedByte(tmpSet)==0){ //On teste si toutes les cellules du premier set ainsi obtenu sont équilibrées
 				
-				for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
-					
-					unsigned char tmp1 = tmpset1[i][a] ^ k; 
-					tmp1 = InvSubBytes(tmp1);  // InvSubBytes(d ^ k) 
+				for(int i=0; i<256; i++){ //On parcourt les 256 octets du deuxième lambdaSet
+
+					unsigned char tmp1 = tmpset1[i][a] ^ k; //On xor chaque octet avec la clé supposée 
+					tmp1 = InvSubBytes(tmp1);  //On calcule l'inverse de SubBytes du résultat du calcul précédent
 					tmpSet[i] = tmp1;
 				}
-				if (balancedByte(tmpSet)==0){
-					KeySuggested[a] = k;
-					printf("%x ",KeySuggested[a]);
+				if (balancedByte(tmpSet)==0){//On teste si toutes les cellules du deuxième set ainsi obtenu sont équilibrées
+					KeySuggested[a] = k; //Si la clé supposée fonctionne sur les deux sets on la sauvegarde
 				}
 			}
 		}
-		printf("\n");
 	}
 }
-// fonction qui retourne la clé initiale à partir d'une sous clé.
 
+//Fonction qui retourne la clé initiale à partir d'une sous clé.
 unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
 	unsigned char * tmpKey = NULL;
 	tmpKey = malloc(sizeof(unsigned char)*16);
@@ -293,41 +147,20 @@ unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
 	return key;
 };
 
-// fonction qui retourne l'intersection de 2 tableaux 
-
-unsigned char * intersectionKey(unsigned char **tab1 , int *tailleTab1, unsigned char **tab2, int * tailleTab2){
-	unsigned char *key = NULL;
-	key = malloc(sizeof(unsigned char)*16);
-
-	for (int i=0; i<16; i++){
-		for(int j=0; j<tailleTab1[i];j++){
-			for(int k=0; k<tailleTab2[i];k++){
-				if(tab1[i][j]==tab2[i][k]){
-					key[i] = tab1[i][j];
-				}
-			}
-		}
-	}
-	return key;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned char key[16] = {0xb7,0x22,0xd9,0x96,0x3a,0x99,0x41,0x59,0x5a,0x3a,0xc3,0x36,0x0f,0x61,0x88,0x73};
-
-
-
-
 int main(int argc, char* argv[])
-{
+{	
+	//Ecriture du premier lambda set chiffré dans un tableau 
+	//Initialisations
 	int val;
 	int compteur_ligne = 0;
 	char tab[3]= "00";
-	unsigned char set[256][16];
+	unsigned char set1[256][16];
 	
-	//ecriture du lambda set chiffré dans un tableau 
 	FILE* chiffres; 
 	chiffres = fopen("AES4_ciphered_set_1_key_B.txt", "r"); 
 
@@ -340,99 +173,77 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Reading error wih code %d\n",errno);
 			break;
 		}
-        //parcour des lignes chiffres et ajout au tableau 
-    
+
+        //Parcours des lignes chiffres et ajout au tableau 
     	for(int j=0; j<32; j+=2)
     	{
     		//Pour récupérer les caractères deux par deux
 	        strncpy(tab, (char *)buffer+j, 2);
-	        //Pour les transformer en hexa
+	        //Pour les transformer en hexadécimal
 	        sscanf(tab, "%x", &val);
-	        //Pour les ajouter dans la matrice dans l'ordre
-	        set[compteur_ligne][j/2] = val;
-    	}
-   
-        compteur_ligne = compteur_ligne +1;
-        //puts( (char *)buffer );  //affichage des lignes recup      
-    }
-    free( buffer ); 
-	fclose(chiffres);
-
-
-	compteur_ligne = 0;
-	char tab1[3]= "00";
-	unsigned char set1[256][16];
-	
-	//ecriture du lambda set chiffré dans un tableau 
-	FILE* chiffres1; 
-	chiffres1 = fopen("AES4_ciphered_set_2_key_B.txt", "r"); 
-
-	char * buffer1 = (char *) malloc(40);
-    while ( ! feof( chiffres1) ) 
-    {
-        fgets((char *)buffer, 40 , chiffres1);
-        if ( ferror(chiffres1) ) 
-        {
-			fprintf(stderr, "Reading error wih code %d\n",errno);
-			break;
-		}
-        //parcour des lignes chiffres et ajout au tableau 
-    
-    	for(int j=0; j<32; j+=2)
-    	{
-    		//Pour récupérer les caractères deux par deux
-	        strncpy(tab1, (char *)buffer1+j, 2);
-	        //Pour les transformer en hexa
-	        sscanf(tab1, "%x", &val);
 	        //Pour les ajouter dans la matrice dans l'ordre
 	        set1[compteur_ligne][j/2] = val;
     	}
    
         compteur_ligne = compteur_ligne +1;
-        //puts( (char *)buffer );  //affichage des lignes recup      
     }
-    free( buffer1 ); 
-	fclose(chiffres1);
+    free( buffer ); 
+	fclose(chiffres);
 
-
-	//affichage du set chiffré à partir du tableau
-	/*
-	for(int i=0;i<256;i++){
-		for (int j=0; j<16;j++){
-			if(set[i][j]>=16){
-				printf("%x",set[i][j]);
-			}
-			else{
-				printf("0%x",set[i][j]);
-			}
-		}
-		printf("\n");
-	}*/
+	//Ecriture du deuxième lambda set chiffré dans un tableau 
+	//Initialisations
+	compteur_ligne = 0;
+	char tab1[3]= "00";
+	unsigned char set2[256][16];
 	
-	unsigned char tmpset[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset[i][j] = set[i][j];
+	FILE* chiffres2; 
+	chiffres2 = fopen("AES4_ciphered_set_2_key_B.txt", "r"); 
+
+	char * buffer2 = (char *) malloc(40);
+    while ( ! feof( chiffres2) ) 
+    {
+        fgets((char *)buffer, 40 , chiffres2);
+        if ( ferror(chiffres2) ) 
+        {
+			fprintf(stderr, "Reading error wih code %d\n",errno);
+			break;
 		}
-	}
 
-	unsigned char tmpset1[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset1[i][j] = set1[i][j];
-		}
-	}
+        //Parcours des lignes chiffres et ajout au tableau  
+    	for(int j=0; j<32; j+=2)
+    	{
+    		//Pour récupérer les caractères deux par deux
+	        strncpy(tab1, (char *)buffer2+j, 2);
+	        //Pour les transformer en hexadécimal
+	        sscanf(tab1, "%x", &val);
+	        //Pour les ajouter dans la matrice dans l'ordre
+	        set2[compteur_ligne][j/2] = val;
+    	}
+   
+        compteur_ligne = compteur_ligne +1;
+    }
+    free( buffer2 ); 
+	fclose(chiffres2);
 
-
-	// attaque --> 
+	//Attaque 
 	unsigned char KeySuggested[16];
+	suggestedKey1(KeySuggested,set1,set2); 
 	
-	suggestedKey1(KeySuggested,tmpset,tmpset1); // -> octet de clé suggeré et le nombre d'octets pour chaque case de la matrice dans tailleKey..
-	
-	/*
-	
+	//Affichage de la clé trouvée
+	printf("La clé de tour trouvée : \n");
 	for(int i=0; i<16; i++){
 		printf("%x  ",KeySuggested[i]);
-	}*/
+	}
+	printf("\n");
+
+	//Récupération de la clé initiale 
+	invKeyExpansion(KeySuggested, 4); 
+
+	//Affichage de la clé initiale trouvée 
+	printf("La clé initiale trouvée : \n");
+	for(int i=0; i<16; i++){
+		printf("%x  ",KeySuggested[i]);
+	}
+	printf("\n");
 	
 }

@@ -85,22 +85,22 @@ void suggestedKey1(unsigned char KeySuggested[16], unsigned char tmpset[256][16]
 		for(int k=0; k<256; k++){ // les clés possibles sur la position i,j
 
 			unsigned char tmpSet[256]; 
-			for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
+			for(int i=0; i<256; i++){	//On parcourt les 256 octets du premier lambdaSet
 				
-				unsigned char tmp = tmpset[i][a] ^ k; 
-				tmp = InvSubBytes(tmp);  // InvSubBytes(d ^ k) 
+				unsigned char tmp = tmpset[i][a] ^ k; //On xor chaque octet avec la clé supposée 
+				tmp = InvSubBytes(tmp);  //On calcule l'inverse de SubBytes du résultat du calcul précédent
 				tmpSet[i] = tmp;
 			}
-			if (balancedByte(tmpSet)==0){
+			if (balancedByte(tmpSet)==0){ //On teste si toutes les cellules du premier set ainsi obtenu sont équilibrées
 				
-				for(int i=0; i<256; i++){	// les 256 octets de chaque lambdaSet pour la position i,j
-					
-					unsigned char tmp1 = tmpset1[i][a] ^ k; 
-					tmp1 = InvSubBytes(tmp1);  // InvSubBytes(d ^ k) 
+				for(int i=0; i<256; i++){ //On parcourt les 256 octets du deuxième lambdaSet
+
+					unsigned char tmp1 = tmpset1[i][a] ^ k; //On xor chaque octet avec la clé supposée 
+					tmp1 = InvSubBytes(tmp1);  //On calcule l'inverse de SubBytes du résultat du calcul précédent
 					tmpSet[i] = tmp1;
 				}
-				if (balancedByte(tmpSet)==0){
-					KeySuggested[a] = k;
+				if (balancedByte(tmpSet)==0){//On teste si toutes les cellules du deuxième set ainsi obtenu sont équilibrées
+					KeySuggested[a] = k; //Si la clé supposée fonctionne sur les deux sets on la sauvegarde
 				}
 			}
 		}
@@ -234,6 +234,7 @@ int main(int argc, char* argv[])
 	for(int i=0; i<16; i++){
 		printf("%x  ",KeySuggested[i]);
 	}
+	printf("\n");
 
 	//Récupération de la clé initiale 
 	invKeyExpansion(KeySuggested, 4); 
@@ -243,5 +244,6 @@ int main(int argc, char* argv[])
 	for(int i=0; i<16; i++){
 		printf("%x  ",KeySuggested[i]);
 	}
+	printf("\n");
 	
 }

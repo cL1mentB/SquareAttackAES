@@ -3,8 +3,8 @@ Implémentation de l'AES:
 -aes.c
 
 # SquareAttackAES 4 tour
-Cette attaque a clair choisi permet de déterminer la clé utilisé lors d'un chiffrement AES sur 4 tours.
-Afin de mener a bien cette attaque, il est nécessaire de posséder 2 lambdaSets chiffrés avec une même clé. 
+Cette attaque à clairs choisis permet de déterminer la clé utilisée lors d'un chiffrement AES sur 4 tours.
+Afin de mener à bien cette attaque, il est nécessaire de posséder 2 lambdaSets chiffrés avec une même clé. 
 
 Implémentaion de l'attaque:
 -attaque4.c
@@ -16,10 +16,10 @@ Les 2 lambdaSets chiffrés fournis sont :
 
 
 # SquareAttackAES 5 tour
-Cette attaque a clair choisi permet de déterminer la clé utilisé lors d'un chiffrement AES sur 5 tours.
-Afin de mener a bien cette attaque, il est nécessaire de posséder 6 lambdaSets chiffrés avec une même clé. 
+Cette attaque à clairs choisis permet de déterminer la clé utilisé lors d'un chiffrement AES sur 5 tours.
+Afin de mener à bien cette attaque, il est nécessaire de posséder 6 lambdaSets chiffrés avec une même clé. 
 
-Implémentaion de l'attaque:
+Implémentation de l'attaque:
 -attaque5.c
 
 Les 6 lambdaSets chiffrés fournis sont :

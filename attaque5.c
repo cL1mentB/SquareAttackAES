@@ -132,8 +132,6 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
     }
 }
 
-
-
 void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
 	unsigned char tmp[4];
 
@@ -147,45 +145,6 @@ void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
 		col[i] = tmp[i];
 	}
 }
-
-
-void InvMixColumns(unsigned char state[4][4]) //InvMix sur une matrice
-{
-	//Declaration de matrice intermediaire 
-	unsigned char tmp[4][4] = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
-
-	//multiplication des matrices dans une matrice temporaire	
-	for (int i = 0; i<4; i++)
-    {
-    	for(int j = 0; j<4; j++ )
-    	{
-     		for (int s = 0; s<4 ; s++)
-     		{	
-				if(Inv_tab_mixCol[s][j] == 9){
-					tmp[i][j] = tmp[i][j] ^ m9[state[i][s]];
-				}
-				else if(Inv_tab_mixCol[s][j] == 11){
-					tmp[i][j] = tmp[i][j] ^ m11[state[i][s]];
-				}
-				else if(Inv_tab_mixCol[s][j] == 13){
-					tmp[i][j] = tmp[i][j] ^ m13[state[i][s]];
-				}
-				else{
-					tmp[i][j] = tmp[i][j] ^ m14[state[i][s]];
-				}	
-     		}
-     	}
-    }
-    //recopiage de tmp sur state
-    for (int i = 0; i<4; i++)
-    {
-    	for(int j = 0; j<4; j++ )
-    	{
-     		state[i][j] = tmp[i][j]; 
-     	}
-    }
-}
-
 
 //recupération des lamdba set 
 void Recup_set(unsigned char set[256][16], char* titre)
@@ -247,14 +206,55 @@ int TestCell(unsigned char set[256])
 }
 
 //Fonction qui récupère les diagonales 
-void Recup_Diag(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4], int diagonale)  //diagonale entre 0 et 3 avec 0 la diag de base.
+void Recup_Diag1(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4])  //diagonale entre 0 et 3 avec 0 la diag de base.
 {
 	for( int i = 0; i<256; i++)
 	{
-		for(int j = diagonale; j<16 ; j=j+5)
-		{
-			Diagonal_Chiffre[i][j] = set[i][j];
-		}
+		
+		Diagonal_Chiffre[i][0] = set[i][4];
+		Diagonal_Chiffre[i][1] = set[i][1];
+		Diagonal_Chiffre[i][2] = set[i][14];
+		Diagonal_Chiffre[i][3] = set[i][11];
+
+	}
+}
+
+void Recup_Diag2(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4])  //diagonale entre 0 et 3 avec 0 la diag de base.
+{
+	for( int i = 0; i<256; i++)
+	{
+		
+		Diagonal_Chiffre[i][0] = set[i][0];
+		Diagonal_Chiffre[i][1] = set[i][13];
+		Diagonal_Chiffre[i][2] = set[i][10];
+		Diagonal_Chiffre[i][3] = set[i][7];
+
+	}
+}
+
+void Recup_Diag3(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4])  //diagonale entre 0 et 3 avec 0 la diag de base.
+{
+	for( int i = 0; i<256; i++)
+	{
+		
+		Diagonal_Chiffre[i][0] = set[i][8];
+		Diagonal_Chiffre[i][1] = set[i][5];
+		Diagonal_Chiffre[i][2] = set[i][2];
+		Diagonal_Chiffre[i][3] = set[i][15];
+
+	}
+}
+
+void Recup_Diag4(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4])  //diagonale entre 0 et 3 avec 0 la diag de base.
+{
+	for( int i = 0; i<256; i++)
+	{
+		
+		Diagonal_Chiffre[i][0] = set[i][12];
+		Diagonal_Chiffre[i][1] = set[i][9];
+		Diagonal_Chiffre[i][2] = set[i][6];
+		Diagonal_Chiffre[i][3] = set[i][3];
+
 	}
 }
 
@@ -284,60 +284,51 @@ unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsig
 	
 	//Hypothèses de 4 octets de clés de K5
     for(int i =0; i<256;i++){
-		
+		printf("%d\n",i);
+
     	for(int j =0; j<256;j++){
 			
-    		for(int k =0; k<256;k++){
-				printf("%d\n",k);
+			for( int k=0; k<256; k++)
+			{
+				for(int b= 0; b<256; b++)
+				{ //hypothèses de beta (1 octet) 
+					K5[0] = i ;
+					K5[1] = j ;
+					K5[2] = 0xAE;
+					K5[3] = k;
 				
-   				 for(int l =0; l<256;l++){
-   					for(int b= 0; b<256; b++){ //hypothèses de beta (1 octet) 
-						K5[0] = i ;
-						K5[1] = j ;
-						K5[2] = k ;
-						K5[3] = l ;
-						
-						//Teste equilibre de la cellule sur les lambdas set 
-						if (TestLamdbaSet(D1, K5, b ) && TestLamdbaSet(D2, K5, b ) && TestLamdbaSet(D3, K5, b ) && TestLamdbaSet(D4, K5, b ) && TestLamdbaSet(D5, K5, b ) && TestLamdbaSet(D6, K5, b ))
+				//Teste equilibre de la cellule sur les lambdas set 
+					if (TestLamdbaSet(D1, K5, b ) == 1)
+					{
+						if (TestLamdbaSet(D2, K5, b ) == 1)
 						{
-							for(int z=0;z<4;z++){
-								printf("%x ",K5[z]);
+							if (TestLamdbaSet(D3,K5,b)==1)
+							{
+								if (TestLamdbaSet(D4,K5,b)==1)
+								{
+									if (TestLamdbaSet(D5,K5,b)==1)
+									{
+										if (TestLamdbaSet(D6,K5,b)==1)
+										{
+
+											for(int z=0;z<4;z++)
+											{
+												printf("%x ",K5[z]);
+											}
+											printf("\n");
+											return K5;
+											
+										}
+									}
+								}
 							}
-							return K5;
 						}
 					}
-   				}
-    		}
+				}
+			}
     	}
     }
 	return K5;
-}
-
-unsigned char * SquareAttaque5(unsigned char set1[256][16],unsigned char set2[256][16],unsigned char set3[256][16],unsigned char set4[256][16],unsigned char set5[256][16],unsigned char set6[256][16]){
-
-	unsigned char key[16];
-	unsigned char * K5 = malloc(sizeof(unsigned char)*4); 
-	unsigned char Diagonal_Chiffre1[256][4];
-	unsigned char Diagonal_Chiffre2[256][4];
-	unsigned char Diagonal_Chiffre3[256][4];
-	unsigned char Diagonal_Chiffre4[256][4];
-	unsigned char Diagonal_Chiffre5[256][4];
-	unsigned char Diagonal_Chiffre6[256][4];
-
-	for(int i =0 ;i<4;i++){
-		Recup_Diag(set1, Diagonal_Chiffre1,i);
-		Recup_Diag(set2, Diagonal_Chiffre2,i);
-		Recup_Diag(set3, Diagonal_Chiffre3,i);
-		Recup_Diag(set4, Diagonal_Chiffre4,i);
-		Recup_Diag(set5, Diagonal_Chiffre5,i);
-		Recup_Diag(set6, Diagonal_Chiffre6,i);
-
-		K5 = Diagonale_Key(K5, Diagonal_Chiffre1, Diagonal_Chiffre2, Diagonal_Chiffre3, Diagonal_Chiffre4, Diagonal_Chiffre5, Diagonal_Chiffre6);
-		for (int j=0;j<4;j++){
-			key[4*i+j] = K5[j];
-		}
-	}
-	return key;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -346,20 +337,6 @@ unsigned char * SquareAttaque5(unsigned char set1[256][16],unsigned char set2[25
 
 int main(int argc, char* argv[])
 {
-	//recherche des 4 octets de cle de la diagonale centrale 
-
-	//on recupere la diagonale C des octets necessaires dans un tableau de taille 4
-
-	// 4 boucle for pour 4 hypothèses de 4 octets de clés de K5
-
-		//y = invSbox(C[] ^ K5[])
-		// for pourhypothese de cle d'un octet b 
-			//x = b ^ 4ième octet de(inMixColonne(y))
-			// test = teste(invSbox(x))
-			//si test = 0 alors on garde les 4 octets en supposition de clé possible (pour les tester sur autre lamdba set)  et ajout au tableau de clé 
-			//sinon hypothèse suivante 
-
-	//Récupération des lamdba set dans des tableaux 
 	
 	char* titre1 = "AES5_ciphered_set_1_key_C.txt";
 	char* titre2 = "AES5_ciphered_set_2_key_C.txt";
@@ -382,49 +359,6 @@ int main(int argc, char* argv[])
 	Recup_set(set5, titre5);
 	Recup_set(set6, titre6);
 
-	unsigned char tmpset1[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset1[i][j] = set1[i][j];
-		}
-	}
-
-	unsigned char tmpset2[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset2[i][j] = set2[i][j];
-		}
-	}
-	unsigned char tmpset3[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset3[i][j] = set3[i][j];
-		}
-	}
-
-	unsigned char tmpset4[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset4[i][j] = set4[i][j];
-		}
-	}
-	unsigned char tmpset5[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset5[i][j] = set5[i][j];
-		}
-	}
-
-	unsigned char tmpset6[256][16]; //Ajout du set dans tmpset
-	for(int i=0;i<256;i++){
-		for(int j=0;j<16;j++){
-			tmpset6[i][j] = set6[i][j];
-		}
-	}
-
-	//attaque sur les diagonales
-
-
 	//Initialisations
 	unsigned char K5[4]; 
 	unsigned char Diagonal_Chiffre1[256][4];
@@ -435,13 +369,12 @@ int main(int argc, char* argv[])
 	unsigned char Diagonal_Chiffre6[256][4];
 
 
-
-	Recup_Diag(tmpset1, Diagonal_Chiffre1,0);
-	Recup_Diag(tmpset2, Diagonal_Chiffre2,0);
-	Recup_Diag(tmpset3, Diagonal_Chiffre3,0);
-	Recup_Diag(tmpset4, Diagonal_Chiffre4,0);
-	Recup_Diag(tmpset5, Diagonal_Chiffre5,0);
-	Recup_Diag(tmpset6, Diagonal_Chiffre6,0);
+	Recup_Diag2(set1, Diagonal_Chiffre1);
+	Recup_Diag2(set2, Diagonal_Chiffre2);
+	Recup_Diag2(set3, Diagonal_Chiffre3);
+	Recup_Diag2(set4, Diagonal_Chiffre4);
+	Recup_Diag2(set5, Diagonal_Chiffre5);
+	Recup_Diag2(set6, Diagonal_Chiffre6);
 
 
 	Diagonale_Key(K5, Diagonal_Chiffre1, Diagonal_Chiffre2, Diagonal_Chiffre3, Diagonal_Chiffre4, Diagonal_Chiffre5, Diagonal_Chiffre6);

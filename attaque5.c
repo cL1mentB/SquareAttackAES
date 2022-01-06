@@ -131,30 +131,7 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
         state[(i/2)/4][(i/2)%4] = val;
     }
 }
-/*
-void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
-	unsigned char tmp[4];
-		for(int i=0;i<4;i++){
-			for(int s=0;s<4;s++){
-				switch (Inv_tab_mixCol[i][s]){
-				case 9:
-					tmp[i] = tmp[i] ^ m9[col[s]];
-				case 11:
-					tmp[i] = tmp[i] ^ m11[col[s]];
-				case 13:
-					tmp[i] = tmp[i] ^ m13[col[s]];
-				case 14:
-					tmp[i] = tmp[i] ^ m14[col[s]];
-				}
-			}
-		}
-	
-	//recopiage dans col
-	
-		for (int i=0;i<4;i++){
-			col[i] = tmp[i];
-		}
-	}*/
+
 
 
 void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
@@ -166,11 +143,10 @@ void InvMixCol(unsigned char col[4]){ // InvMixCol sur charque colonne d'un set
 	tmp[3] = m11[col[0]]^m13[col[1]]^m9[col[2]]^m14[col[3]];
 
 	//recopiage dans col
-	
-		for (int i=0;i<4;i++){
-			col[i] = tmp[i];
-		}
+	for (int i=0;i<4;i++){
+		col[i] = tmp[i];
 	}
+}
 
 
 void InvMixColumns(unsigned char state[4][4]) //InvMix sur une matrice
@@ -271,11 +247,11 @@ int TestCell(unsigned char set[256])
 }
 
 //Fonction qui récupère les diagonales 
-void Recup_Diag(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4])
+void Recup_Diag(unsigned char set[256][16], unsigned char Diagonal_Chiffre[256][4], int diagonale)  //diagonale entre 0 et 3 avec 0 la diag de base.
 {
 	for( int i = 0; i<256; i++)
 	{
-		for(int j = 0; j<16 ; j=j+5)
+		for(int j = diagonale; j<16 ; j=j+5)
 		{
 			Diagonal_Chiffre[i][j] = set[i][j];
 		}
@@ -337,7 +313,32 @@ unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsig
 	return K5;
 }
 
+unsigned char * SquareAttaque5(unsigned char set1[256][16],unsigned char set2[256][16],unsigned char set3[256][16],unsigned char set4[256][16],unsigned char set5[256][16],unsigned char set6[256][16]){
 
+	unsigned char key[16];
+	unsigned char * K5 = malloc(sizeof(unsigned char)*4); 
+	unsigned char Diagonal_Chiffre1[256][4];
+	unsigned char Diagonal_Chiffre2[256][4];
+	unsigned char Diagonal_Chiffre3[256][4];
+	unsigned char Diagonal_Chiffre4[256][4];
+	unsigned char Diagonal_Chiffre5[256][4];
+	unsigned char Diagonal_Chiffre6[256][4];
+
+	for(int i =0 ;i<4;i++){
+		Recup_Diag(set1, Diagonal_Chiffre1,i);
+		Recup_Diag(set2, Diagonal_Chiffre2,i);
+		Recup_Diag(set3, Diagonal_Chiffre3,i);
+		Recup_Diag(set4, Diagonal_Chiffre4,i);
+		Recup_Diag(set5, Diagonal_Chiffre5,i);
+		Recup_Diag(set6, Diagonal_Chiffre6,i);
+
+		K5 = Diagonale_Key(K5, Diagonal_Chiffre1, Diagonal_Chiffre2, Diagonal_Chiffre3, Diagonal_Chiffre4, Diagonal_Chiffre5, Diagonal_Chiffre6);
+		for (int j=0;j<4;j++){
+			key[4*i+j] = K5[j];
+		}
+	}
+	return key;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
@@ -435,14 +436,14 @@ int main(int argc, char* argv[])
 
 
 
-	Recup_Diag(tmpset1, Diagonal_Chiffre1);
-	Recup_Diag(tmpset2, Diagonal_Chiffre2);
-	Recup_Diag(tmpset3, Diagonal_Chiffre3);
-	Recup_Diag(tmpset4, Diagonal_Chiffre4);
-	Recup_Diag(tmpset5, Diagonal_Chiffre5);
-	Recup_Diag(tmpset6, Diagonal_Chiffre6);
+	Recup_Diag(tmpset1, Diagonal_Chiffre1,0);
+	Recup_Diag(tmpset2, Diagonal_Chiffre2,0);
+	Recup_Diag(tmpset3, Diagonal_Chiffre3,0);
+	Recup_Diag(tmpset4, Diagonal_Chiffre4,0);
+	Recup_Diag(tmpset5, Diagonal_Chiffre5,0);
+	Recup_Diag(tmpset6, Diagonal_Chiffre6,0);
 
 
-	Diagonale_Key(K5,Diagonal_Chiffre1,Diagonal_Chiffre2,Diagonal_Chiffre3,Diagonal_Chiffre4,Diagonal_Chiffre5,Diagonal_Chiffre6);
+	Diagonale_Key(K5, Diagonal_Chiffre1, Diagonal_Chiffre2, Diagonal_Chiffre3, Diagonal_Chiffre4, Diagonal_Chiffre5, Diagonal_Chiffre6);
 
 }

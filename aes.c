@@ -185,19 +185,19 @@ void AddRoundKey(unsigned char state[4][4], unsigned char * expandedKey,int tour
 //Et retourne un tableau contenant les nbtours+1 clés. 
 unsigned char * KeyExpansion(unsigned char key[16],int nbtours){ 
     
-    unsigned char * expandedKey = malloc( (nbtours+1)*16);
+    unsigned char * expandedKey = malloc((nbtours+1)*16); // représente l'ensemble des octets de toutes les clés : K_0 jusqu'à K_nbtours.
 
     for(int i =0; i<16;i++){
-        expandedKey[i] = key[i];
+        expandedKey[i] = key[i]; // on ajoute la clé initiale K_0.
     }
     int byteCount = 16;
-    for(int i=0; i<nbtours; i++){
+    for(int i=0; i<nbtours; i++){ // on calcule les octets de chacune des clés
         unsigned char word[4] = {expandedKey[byteCount-4],expandedKey[byteCount-3],expandedKey[byteCount-2],expandedKey[byteCount-1]};
         unsigned char tmp[4] = {Sbox[word[1]]^Rcon[i+1],Sbox[word[2]],Sbox[word[3]],Sbox[word[0]]};
 
-        for(int j=0; j<4; j++){
+        for(int j=0; j<4; j++){ 
             if(j==0){
-                for(int k=0; k<4;k++){
+                for(int k=0; k<4;k++){ 
                     expandedKey[byteCount+k] = expandedKey[byteCount+k-16]^tmp[k];
                     
                 }

@@ -283,7 +283,7 @@ int TestLamdbaSet(unsigned char Diagonal_Chiffre[256][4], unsigned char K5[4],un
 unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsigned char D2[256][4],unsigned char D3[256][4],unsigned char D4[256][4],unsigned char D5[256][4],unsigned char D6[256][4]){
 	
 	//Hypothèses de 4 octets de clés de K5
-    for(int i =0; i<256;i++){
+    for(int i =0; i<128;i++){
 		printf("%d\n",i);
 
     	for(int j =0; j<256;j++){

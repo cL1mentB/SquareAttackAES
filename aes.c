@@ -26,7 +26,7 @@ unsigned char Sbox[256] =
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
  };
 
-// pour mixColumns
+//Pour mixColumns
 unsigned char m2[256] = {0x00,0x02,0x04,0x06,0x08,0x0A,0x0C,0x0E,0x10,0x12,0x14,0x16,0x18,0x1A,0x1C,0x1E,
       0x20,0x22,0x24,0x26,0x28,0x2A,0x2C,0x2E,0x30,0x32,0x34,0x36,0x38,0x3A,0x3C,0x3E,
       0x40,0x42,0x44,0x46,0x48,0x4A,0x4C,0x4E,0x50,0x52,0x54,0x56,0x58,0x5A,0x5C,0x5E,
@@ -63,7 +63,7 @@ unsigned char m3[256] = {0x00,0x03,0x06,0x05,0x0C,0x0F,0x0A,0x09,0x18,0x1B,0x1E,
       0x0B,0x08,0x0D,0x0E,0x07,0x04,0x01,0x02,0x13,0x10,0x15,0x16,0x1F,0x1C,0x19,0x1A
   };
 
-
+//Pour Key_schedule
 unsigned char Rcon[11] = {0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ void initialisation(unsigned char state[4][4], unsigned char* message)
 	char init[3]="00";
 	for(int i=0; i<32; i+=2)
     {
-    	//Pour récupérer les caractères deux par deux
+        //Pour récupérer les caractères deux par deux
         strncpy(init, (char *)message+i, 2);
         //Pour les transformer en hexadécimal
         sscanf(init, "%x", &val);
@@ -140,13 +140,13 @@ void ShiftRows(unsigned char state[4][4])
 
 
 
-//Fonction qui prend en entrée une matrice et renvoie la matrice transformée par l'pplication du Mixcolonne
+//Fonction qui prend en entrée une matrice et renvoie la matrice transformée par l'application du Mixcolumns
 void MixColumns(unsigned char state[4][4])
 {
 	//Déclaration d'une matrice temporaire
 	unsigned char tmp[4][4] = {{0,0,0,0},{0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
 
-	//
+	//Application sur chaque colonne
 	for (int i = 0; i<4; i++)
     {
         tmp[0][i] = m2[state[0][i]]^m3[state[1][i]]^state[2][i]^state[3][i];
@@ -218,8 +218,8 @@ unsigned char * KeyExpansion(unsigned char key[16],int nbtours){
   // au tour t, il faut prendre les valeurs de t*16 à (t+1)*16
 
 
-
-//Fonction de chiffrement de l'AES qui prend en entrée un message de 16 octets, un nombre de tours, une clé et qui renvoie le chiffré correspondant
+//Fonction de chiffrement de l'AES qui prend en entrée un message de 16 octets, un nombre de tours
+// une clé et qui renvoie le chiffré correspondant
 void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16]){
 	//Key schedule
 	unsigned char * expandedKey = KeyExpansion(key,nbtours);
@@ -247,7 +247,7 @@ void encryption_AES(int nbtours, unsigned char state[4][4], unsigned char key[16
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned char key3[16] = {0x94,0xa4,0x5f,0x2f,0xe8,0x4c,0x51,0xc4,0x2e,0x54,0x48,0x5c,0x3e,0xd2,0xe6,0x8f};
+unsigned char key[16] = {0x94,0xa4,0x5f,0x2f,0xe8,0x4c,0x51,0xc4,0x2e,0x54,0x48,0x5c,0x3e,0xd2,0xe6,0x8f};
 
 int main(int argc, char* argv[])
 {
@@ -259,9 +259,12 @@ int main(int argc, char* argv[])
 	unsigned char state[4][4]; 
 	initialisation(state, (unsigned char*)message);
   
-	
+  printf("Message a chiffrer:\n");
+	affichage(state);
+
 	//Chiffrement du message 
-	encryption_AES(4, state, key3);
+	encryption_AES(4, state, key);
+  printf("Message obtenu après chiffrement:\n ");
   affichage(state);
 
 	return 0;

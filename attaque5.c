@@ -341,6 +341,48 @@ unsigned char * Diagonale_Key(unsigned char K5[4],unsigned char D1[256][4],unsig
 	return 0;
 }
 
+
+//Fonction qui retourne la clé initiale à partir d'une sous clé.
+unsigned char * invKeyExpansion(unsigned char key[16],int nbtours){
+	unsigned char * tmpKey = NULL;
+	tmpKey = malloc(sizeof(unsigned char)*16);
+	
+
+	for(int i= 0; i<16;i++){
+		tmpKey[i] = 0;
+	}
+
+	for (int i=0; i<nbtours;i++){
+		
+		for (int j=15;j>=0;j--){
+			if(j>=4){
+				tmpKey[j]=key[j]^key[j-4];
+			}
+			else{
+				switch(j){
+					case 3 : 
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[12]];
+						break;
+					case 2 : 
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[15]];
+						break;
+					case 1 :
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[14]];
+						break;
+					case 0 :
+						tmpKey[j] = key[j] ^ Sbox[tmpKey[13]]^Rcon[nbtours - i];
+						break;
+				}
+			}
+		}
+		for(int s = 0; s<16; s++){
+			key[s]= tmpKey[s];
+		}	
+	}
+	return key;
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Main //////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -509,6 +551,7 @@ int main(int argc, char* argv[])
 	cle[3]= K5[3];
 
 
+
 	//Affichage de la clé retrouvée
 	printf("voici la clé de tour K5 : ");
 	for(int z=0;z<16;z++)
@@ -516,6 +559,17 @@ int main(int argc, char* argv[])
 		printf("%x ",cle[z]);
 	}
 	printf("\n");
+
+
+
+	//Récupération de la clé initiale 
+	invKeyExpansion(cle, 5); 
+
+	//Affichage de la clé initiale trouvée 
+	printf("La clé initiale trouvée : \n");
+	for(int i=0; i<16; i++){
+		printf("%x  ",cle[i]);
+	}
 
 
 }*/
